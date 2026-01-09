@@ -1,0 +1,412 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { createOrder } from '../redux/slices/orderSlice';
+import { clearCart } from '../redux/slices/cartSlice';
+import { getAddresses } from '../api/userApi';
+import { formatCurrency } from '../utils/formatters';
+import { calculateCartTotal } from '../utils/helpers';
+import { createRazorpayOrder, verifyPayment } from '../api/paymentApi';
+import { updateOrderStatus } from '../api/orderApi';
+import toast from 'react-hot-toast';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY 
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : null;
+
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+const Checkout = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { items, restaurant } = useSelector((state) => state.cart);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (items.length === 0) {
+      navigate('/restaurants');
+      return;
+    }
+
+    fetchAddresses();
+  }, [items, navigate]);
+
+  const fetchAddresses = async () => {
+    try {
+      const response = await getAddresses();
+      setAddresses(response.data.addresses);
+      
+      const defaultAddr = response.data.addresses.find(addr => addr.isDefault);
+      if (defaultAddr) {
+        setSelectedAddress(defaultAddr._id);
+      }
+    } catch (error) {
+      toast.error('Failed to load addresses');
+    }
+  };
+
+  const subtotal = calculateCartTotal(items);
+  const deliveryFee = restaurant?.deliveryFee || 0;
+  const tax = subtotal * 0.05;
+  const total = subtotal + deliveryFee + tax;
+
+  const handlePlaceOrder = async () => {
+    if (!selectedAddress) {
+      toast.error('Please select a delivery address');
+      return;
+    }
+
+    if (loading) {
+      return; // Prevent multiple submissions
+    }
+
+    setLoading(true);
+
+    try {
+      const orderData = {
+        restaurantId: restaurant._id,
+        addressId: selectedAddress,
+        items: items.map(item => ({
+          menuItemId: item._id,
+          quantity: item.quantity
+        })),
+        paymentMethod: paymentMethod || 'cod'
+      };
+
+      const result = await dispatch(createOrder(orderData));
+      
+      if (createOrder.fulfilled.match(result)) {
+        const orderId = result.payload.order._id;
+        const orderTotal = result.payload.order.total;
+        
+        // Clear cart first to prevent re-submission
+        dispatch(clearCart());
+        
+        // Handle payment based on method
+        if (paymentMethod === 'upi' || paymentMethod === 'card') {
+          // Razorpay payment for both UPI and Card
+          try {
+            toast.loading('Initializing payment...');
+            
+            // Create Razorpay order
+            const razorpayResponse = await createRazorpayOrder(orderId, orderTotal);
+            
+            if (!razorpayResponse.success) {
+              throw new Error('Failed to initialize payment');
+            }
+
+            const options = {
+              key: RAZORPAY_KEY_ID,
+              amount: razorpayResponse.data.amount,
+              currency: razorpayResponse.data.currency,
+              name: 'FlashBites',
+              description: `Order #${orderId.slice(-8)}`,
+              order_id: razorpayResponse.data.orderId,
+              prefill: {
+                name: result.payload.order.user?.name || '',
+                email: result.payload.order.user?.email || '',
+                contact: result.payload.order.user?.phone || ''
+              },
+              theme: {
+                color: '#FF6B6B'
+              },
+              method: {
+                upi: paymentMethod === 'upi',
+                card: paymentMethod === 'card',
+                netbanking: false,
+                wallet: false
+              },
+              handler: async function (response) {
+                try {
+                  // Payment successful - verify on backend
+                  toast.dismiss();
+                  toast.loading('Verifying payment...');
+                  
+                  const verifyResult = await verifyPayment({
+                    paymentId: razorpayResponse.data.paymentId,
+                    gateway: 'razorpay',
+                    gatewayResponse: {
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_signature: response.razorpay_signature
+                    }
+                  });
+                  
+                  toast.dismiss();
+                  toast.success('💳 Payment successful! Waiting for restaurant confirmation');
+                  navigate(`/orders/${orderId}`);
+                } catch (error) {
+                  console.error('❌ Payment verification failed:', error);
+                  console.error('Error details:', error.response?.data || error.message);
+                  
+                  toast.dismiss();
+                  toast.success('Payment completed! Waiting for restaurant confirmation');
+                  navigate(`/orders/${orderId}`);
+                }
+              },
+              modal: {
+                ondismiss: function() {
+                  toast.dismiss();
+                  toast.error('Payment cancelled. Order created but not paid.');
+                  navigate(`/orders/${orderId}`);
+                }
+              },
+              notes: {
+                order_id: orderId,
+                customer_id: result.payload.order.user?._id || ''
+              }
+            };
+
+            toast.dismiss();
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
+            
+          } catch (error) {
+            console.error('❌ Razorpay initialization error:', error);
+            toast.dismiss();
+            
+            if (error.message?.includes('Failed to initialize')) {
+              toast.error('Payment gateway error. Please try COD or contact support');
+            } else {
+              toast.error('Failed to initialize payment. Order created - you can pay later');
+            }
+            
+            navigate(`/orders/${orderId}`);
+          }
+        } else if (paymentMethod === 'cod') {
+          // Cash on delivery - no payment needed
+          toast.success('Order placed successfully! Pay on delivery');
+          navigate(`/orders/${orderId}`);
+        } else {
+          // Default fallback
+          toast.success('Order placed successfully!');
+          navigate(`/orders/${orderId}`);
+        }
+      } else if (createOrder.rejected.match(result)) {
+        console.error('Order rejected:', result.payload);
+        toast.error(result.payload || 'Failed to place order');
+      }
+    } catch (error) {
+      console.error('Order error:', error);
+      toast.error(error.message || 'Failed to place order');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Left Column */}
+          <div className="md:col-span-2 space-y-6">
+            {/* Delivery Address */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-bold mb-4">Delivery Address</h2>
+              
+              {addresses.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-4">No saved addresses</p>
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="btn-primary"
+                  >
+                    Add Address
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {addresses.map((address) => (
+                    <label
+                      key={address._id}
+                      className={`block p-4 border rounded-lg cursor-pointer transition ${
+                        selectedAddress === address._id
+                          ? 'border-primary-600 bg-primary-50'
+                          : 'border-gray-300 hover:border-primary-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="address"
+                        value={address._id}
+                        checked={selectedAddress === address._id}
+                        onChange={() => setSelectedAddress(address._id)}
+                        className="mr-3"
+                      />
+                      <span className="font-semibold capitalize">{address.type}</span>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {address.street}, {address.city}, {address.state} - {address.zipCode}
+                      </p>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Payment Method */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-bold mb-4">Payment Method</h2>
+              
+              <div className="space-y-3">
+                {/* Card Payment */}
+                <label className={`block p-4 border-2 rounded-lg cursor-pointer transition ${
+                  paymentMethod === 'card'
+                    ? 'border-primary-600 bg-primary-50'
+                    : 'border-gray-300 hover:border-primary-300'
+                }`}>
+                  <div className="flex items-start">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="card"
+                      checked={paymentMethod === 'card'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="mr-3 mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center">
+                        <span className="text-2xl mr-2">💳</span>
+                        <span className="font-semibold">Credit/Debit Card</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1 ml-8">
+                        Visa, Mastercard, Amex, and more
+                      </p>
+                    </div>
+                  </div>
+                </label>
+
+                {/* UPI Payment */}
+                <label className={`block p-4 border-2 rounded-lg cursor-pointer transition ${
+                  paymentMethod === 'upi'
+                    ? 'border-primary-600 bg-primary-50'
+                    : 'border-gray-300 hover:border-primary-300'
+                }`}>
+                  <div className="flex items-start">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="upi"
+                      checked={paymentMethod === 'upi'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="mr-3 mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center">
+                        <span className="text-2xl mr-2">📱</span>
+                        <span className="font-semibold">UPI</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1 ml-8">
+                        PhonePe, Google Pay, Paytm & more
+                      </p>
+                    </div>
+                  </div>
+                </label>
+
+                {/* Cash on Delivery */}
+                <label className={`block p-4 border-2 rounded-lg cursor-pointer transition ${
+                  paymentMethod === 'cod'
+                    ? 'border-primary-600 bg-primary-50'
+                    : 'border-gray-300 hover:border-primary-300'
+                }`}>
+                  <div className="flex items-start">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="cod"
+                      checked={paymentMethod === 'cod'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="mr-3 mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center">
+                        <span className="text-2xl mr-2">💵</span>
+                        <span className="font-semibold">Cash on Delivery</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1 ml-8">
+                        Pay with cash when your order arrives
+                      </p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              {/* Payment Method Info */}
+              {paymentMethod === 'card' && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    ℹ️ You'll be redirected to secure payment gateway to complete your payment
+                  </p>
+                </div>
+              )}
+              {paymentMethod === 'upi' && (
+                <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <p className="text-sm text-purple-800">
+                    ℹ️ You'll receive a UPI payment request to complete your order
+                  </p>
+                </div>
+              )}
+              {paymentMethod === 'cod' && (
+                <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-sm text-green-800">
+                    ℹ️ Please keep exact change handy for smooth delivery
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Order Summary */}
+          <div>
+            <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+              <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+
+              <div className="space-y-3 mb-4">
+                {items.map((item) => (
+                  <div key={item._id} className="flex justify-between text-sm">
+                    <span>{item.name} x{item.quantity}</span>
+                    <span>{formatCurrency(item.price * item.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t pt-3 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Fee</span>
+                  <span>{formatCurrency(deliveryFee)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tax (5%)</span>
+                  <span>{formatCurrency(tax)}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                  <span>Total</span>
+                  <span className="text-primary-600">{formatCurrency(total)}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handlePlaceOrder}
+                disabled={loading || !selectedAddress}
+                className="w-full btn-primary py-3 mt-6"
+              >
+                {loading ? 'Placing Order...' : 'Place Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Checkout;

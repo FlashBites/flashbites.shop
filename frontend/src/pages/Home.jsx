@@ -1,0 +1,324 @@
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRestaurants } from '../redux/slices/restaurantSlice';
+import RestaurantCard from '../components/restaurant/RestaurantCard';
+import { Loader } from '../components/common/Loader';
+import { CUISINES } from '../utils/constants';
+import { calculateDistance } from '../utils/helpers';
+import toast from 'react-hot-toast';
+
+const Home = () => {
+  const dispatch = useDispatch();
+  const { restaurants, loading } = useSelector((state) => state.restaurant);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
+
+  useEffect(() => {
+    dispatch(fetchRestaurants({}));
+  }, [dispatch]);
+
+  // Removed automatic location request on mount - only manual now
+  // useEffect(() => {
+  //   requestLocationPermission();
+  // }, []);
+
+  useEffect(() => {
+    // Filter restaurants by distance when location or restaurants change
+    if (userLocation && restaurants.length > 0) {
+      filterRestaurantsByDistance();
+    }
+  }, [userLocation, restaurants]);
+
+  const requestLocationPermission = () => {
+    if ('geolocation' in navigator) {
+      setLocationLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ latitude, longitude });
+          toast.success('Location detected! Showing nearby restaurants');
+          setLocationLoading(false);
+        },
+        (error) => {
+          // Completely silent - no logs, no messages
+          setLocationLoading(false);
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 5000, // Shorter timeout
+          maximumAge: 600000 // 10 minutes cache
+        }
+      );
+    } else {
+      setLocationLoading(false);
+    }
+  };
+
+  const filterRestaurantsByDistance = () => {
+    const MAX_DISTANCE = 50; // 50 km radius
+    
+    const restaurantsWithDistance = restaurants.map(restaurant => {
+      if (restaurant.location?.coordinates && restaurant.location.coordinates.length === 2) {
+        const [restLng, restLat] = restaurant.location.coordinates;
+        const distance = calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          restLat,
+          restLng
+        );
+        return { ...restaurant, distance };
+      }
+      return { ...restaurant, distance: Infinity };
+    });
+
+    // Filter and sort by distance
+    const filtered = restaurantsWithDistance
+      .filter(r => r.distance <= MAX_DISTANCE)
+      .sort((a, b) => a.distance - b.distance);
+
+    setNearbyRestaurants(filtered);
+  };
+
+  const displayRestaurants = userLocation && nearbyRestaurants.length > 0 
+    ? nearbyRestaurants 
+    : restaurants;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold mb-4">
+              Order Your Favorite Food
+            </h1>
+            <p className="text-xl mb-4 text-orange-100">
+              Get your food delivered fast from top restaurants
+            </p>
+            
+            {/* Location Status */}
+            {locationLoading ? (
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-2 text-sm text-orange-100">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Detecting your location...</span>
+                </div>
+              </div>
+            ) : userLocation ? (
+              <p className="text-sm mb-6 text-orange-100">
+                📍 Showing restaurants near you ({nearbyRestaurants.length} found)
+              </p>
+            ) : (
+              <button
+                onClick={requestLocationPermission}
+                className="inline-flex items-center gap-2 text-sm mb-6 text-orange-100 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-all"
+              >
+                📍 Find restaurants near me
+              </button>
+            )}
+            
+            <div>
+              <Link to="/restaurants" className="bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">
+                Explore Restaurants
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cuisines Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">What's on your mind?</h2>
+        <p className="text-gray-600 mb-8">Explore cuisines that excite your taste buds</p>
+        
+        {/* Horizontal Scrolling Container */}
+        <div className="relative overflow-hidden">
+          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+            {/* Indian */}
+            <Link
+              to="/restaurants?cuisine=Indian"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🍛</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Indian</h3>
+            </Link>
+
+            {/* Chinese */}
+            <Link
+              to="/restaurants?cuisine=Chinese"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-red-100 to-red-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🥡</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Chinese</h3>
+            </Link>
+
+            {/* Italian */}
+            <Link
+              to="/restaurants?cuisine=Italian"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🍝</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Italian</h3>
+            </Link>
+
+            {/* Mexican */}
+            <Link
+              to="/restaurants?cuisine=Mexican"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🌮</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Mexican</h3>
+            </Link>
+
+            {/* Thai */}
+            <Link
+              to="/restaurants?cuisine=Thai"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🍜</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Thai</h3>
+            </Link>
+
+            {/* Japanese */}
+            <Link
+              to="/restaurants?cuisine=Japanese"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-pink-100 to-pink-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🍣</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Japanese</h3>
+            </Link>
+
+            {/* American */}
+            <Link
+              to="/restaurants?cuisine=American"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🍔</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">American</h3>
+            </Link>
+
+            {/* Mediterranean */}
+            <Link
+              to="/restaurants?cuisine=Mediterranean"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🥙</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Mediterranean</h3>
+            </Link>
+
+            {/* Continental */}
+            <Link
+              to="/restaurants?cuisine=Continental"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🍽️</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Continental</h3>
+            </Link>
+
+            {/* Fast Food */}
+            <Link
+              to="/restaurants?cuisine=Fast Food"
+              className="group flex flex-col items-center flex-shrink-0 snap-start"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mb-3 group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-4xl sm:text-5xl">🍕</span>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm text-center">Fast Food</h3>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Featured Restaurants */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">
+            {userLocation && nearbyRestaurants.length > 0 ? 'Restaurants Near You' : 'Top Restaurants'}
+          </h2>
+          <Link to="/restaurants" className="text-orange-600 hover:text-orange-700 font-semibold">
+            View All →
+          </Link>
+        </div>
+
+        {loading ? (
+          <Loader />
+        ) : displayRestaurants.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {displayRestaurants.slice(0, 8).map((restaurant) => (
+              <div key={restaurant._id}>
+                <RestaurantCard restaurant={restaurant} />
+                {restaurant.distance && restaurant.distance !== Infinity && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    📍 {restaurant.distance.toFixed(1)} km away
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              {userLocation 
+                ? 'No restaurants found near your location. Try expanding your search area.'
+                : 'No restaurants available at the moment.'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Features Section */}
+      <div className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
+            Why Choose FlashBites?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">⚡</span>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Fast Delivery</h3>
+              <p className="text-gray-600">Get your food delivered in 30 minutes or less</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">🍴</span>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Wide Selection</h3>
+              <p className="text-gray-600">Choose from hundreds of restaurants</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">💯</span>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Quality Assured</h3>
+              <p className="text-gray-600">Only verified and top-rated restaurants</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Home;

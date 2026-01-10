@@ -177,11 +177,14 @@ const server = app.listen(PORT, () => {
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.error('UNHANDLED REJECTION! ⚠️');
   console.error(err.name, err.message);
-  server.close(() => {
-    process.exit(1);
-  });
+  // Don't exit in production - log and continue
+  if (process.env.NODE_ENV !== 'production') {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
 });
 
 // Handle SIGTERM

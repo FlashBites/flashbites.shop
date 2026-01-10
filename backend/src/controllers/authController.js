@@ -55,17 +55,16 @@ exports.sendOTP = async (req, res) => {
       );
     }
 
-    // Send OTP email
-    const emailSent = await sendOTPEmail(email, otp, purpose === 'registration' ? 'verification' : 'reset');
-
-    if (!emailSent) {
-      return errorResponse(res, 500, 'Failed to send OTP email');
-    }
-
+    // Send success response immediately
     successResponse(res, 200, 'OTP sent successfully to your email', { 
       email,
       expiresIn: '10 minutes'
     });
+
+    // Send OTP email asynchronously in background (don't await)
+    sendOTPEmail(email, otp, purpose === 'registration' ? 'verification' : 'reset')
+      .catch(err => console.error('Background email send failed:', err.message));
+
   } catch (error) {
     errorResponse(res, 500, 'Failed to send OTP', error.message);
   }

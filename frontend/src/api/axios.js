@@ -7,10 +7,11 @@ console.log('🔗 API Base URL:', apiUrl);
 
 const instance = axios.create({
   baseURL: apiUrl,
-  timeout: 10000,
+  timeout: 30000, // Increased to 30 seconds for slower connections
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable cookies for CORS
 });
 
 // Request interceptor for adding auth token

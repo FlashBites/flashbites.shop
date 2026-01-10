@@ -3,13 +3,20 @@ const nodemailer = require('nodemailer');
 // Create transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
+    service: 'gmail',
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
     port: process.env.EMAIL_PORT || 587,
     secure: false,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD
-    }
+    },
+    tls: {
+      rejectUnauthorized: false
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000
   });
 };
 
@@ -60,15 +67,16 @@ const sendOTPEmail = async (email, otp, purpose = 'verification') => {
       `
     };
 
-    // Add timeout to prevent hanging
+    // Add timeout to prevent hanging - increased for Gmail
     const sendMailWithTimeout = Promise.race([
       transporter.sendMail(mailOptions),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Email send timeout')), 8000)
+        setTimeout(() => reject(new Error('Email send timeout')), 15000)
       )
     ]);
 
     await sendMailWithTimeout;
+    console.log(`✅ Email sent successfully to ${email}`);
     return true;
   } catch (error) {
     console.error('Email sending error:', error.message);

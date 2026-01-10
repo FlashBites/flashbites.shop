@@ -1,10 +1,12 @@
 const nodemailer = require('nodemailer');
 
-// Gmail SMTP only - Resend removed for simplicity
-
-// Create transporter
+// Create Gmail transporter
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  if (!nodemailer || typeof nodemailer.createTransporter !== 'function') {
+    throw new Error('Nodemailer not properly initialized');
+  }
+  
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,

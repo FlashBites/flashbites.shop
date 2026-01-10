@@ -1,56 +1,27 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
-// Log nodemailer initialization
-console.log('📧 Initializing nodemailer...');
-console.log('nodemailer version:', nodemailer?.version || 'unknown');
-console.log('createTransport available:', typeof nodemailer?.createTransport === 'function');
-
-// Create Gmail transporter
-const createTransporter = () => {
-  try {
-    // Verify nodemailer is properly loaded
-    if (!nodemailer || typeof nodemailer.createTransport !== 'function') {
-      console.error('❌ nodemailer.createTransport not available');
-      console.error('nodemailer object:', nodemailer);
-      throw new Error('Nodemailer module not properly loaded');
-    }
-
-    console.log('✅ Creating Gmail transporter...');
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // Use STARTTLS
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
-    console.log('✅ Transporter created successfully');
-    return transporter;
-  } catch (error) {
-    console.error('❌ Failed to create transporter:', error);
-    throw error;
-  }
-};
+// Initialize SendGrid with API key
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('✅ SendGrid initialized successfully');
+} else {
+  console.warn('⚠️ SendGrid API key not configured');
+}
 
 // Generate 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Send OTP email using Gmail SMTP
+// Send OTP email using SendGrid
 const sendOTPEmail = async (email, otp, purpose = 'verification') => {
   // Always log OTP for development/debugging
   console.log(`📧 Sending OTP to ${email}: ${otp} (${purpose})`);
   
   try {
-    // Check if email credentials are configured
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.warn('⚠️ Gmail credentials not configured. OTP logged above.');
+    // Check if SendGrid is configured
+    if (!process.env.SENDGRID_API_KEY) {
+      console.warn('⚠️ SendGrid API key not configured. OTP logged above.');
       return true;
     }
 
@@ -79,24 +50,17 @@ const sendOTPEmail = async (email, otp, purpose = 'verification') => {
       </div>
     `;
 
-    console.log('📨 Using Gmail SMTP...');
-    const transporter = createTransporter();
+    console.log('📨 Using SendGrid API...');
     
-    const mailOptions = {
-      from: `FlashBites <${process.env.EMAIL_USER}>`,
+    const msg = {
       to: email,
+      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@flashbites.com',
       subject: subject,
       html: htmlContent
     };
 
-    // Send email with timeout
-    const sendPromise = transporter.sendMail(mailOptions);
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Email send timeout after 10s')), 10000)
-    );
-
-    const info = await Promise.race([sendPromise, timeoutPromise]);
-    console.log(`✅ Email sent to ${email}. MessageID: ${info.messageId}`);
+    await sgMail.send(msg);
+    console.log(`✅ Email sent to ${email} via SendGrid`);
     return true;
     
   } catch (error) {
@@ -109,11 +73,14 @@ const sendOTPEmail = async (email, otp, purpose = 'verification') => {
 // Send welcome email
 const sendWelcomeEmail = async (email, name) => {
   try {
-    const transporter = createTransporter();
+    if (!process.env.SENDGRID_API_KEY) {
+      console.warn('⚠️ SendGrid not configured, skipping welcome email');
+      return true;
+    }
 
-    const mailOptions = {
-      from: `FlashBites <${process.env.EMAIL_USER}>`,
+    const msg = {
       to: email,
+      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@flashbites.com',
       subject: 'Welcome to FlashBites!',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
@@ -136,7 +103,8 @@ const sendWelcomeEmail = async (email, name) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    await sgMail.send(msg);
+    console.log(`✅ Welcome email sent to ${email}`);
     return true;
   } catch (error) {
     console.error('Welcome email error:', error);
@@ -147,11 +115,14 @@ const sendWelcomeEmail = async (email, name) => {
 // Send password reset success email
 const sendPasswordResetSuccessEmail = async (email, name) => {
   try {
-    const transporter = createTransporter();
+    if (!process.env.SENDGRID_API_KEY) {
+      console.warn('⚠️ SendGrid not configured, skipping password reset email');
+      return true;
+    }
 
-    const mailOptions = {
-      from: `FlashBites <${process.env.EMAIL_USER}>`,
+    const msg = {
       to: email,
+      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@flashbites.com',
       subject: 'Password Reset Successful',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
@@ -168,7 +139,8 @@ const sendPasswordResetSuccessEmail = async (email, name) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    await sgMail.send(msg);
+    console.log(`✅ Password reset email sent to ${email}`);
     return true;
   } catch (error) {
     console.error('Password reset success email error:', error);

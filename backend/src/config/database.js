@@ -48,7 +48,14 @@ const connectDB = async () => {
 
   } catch (error) {
     console.error('Error connecting to MongoDB:', error.message);
-    process.exit(1);
+    // Don't exit process - allow server to start and handle errors gracefully
+    console.warn('⚠️  Server will start but database operations will fail until MongoDB is connected');
+    
+    // Retry connection after 10 seconds
+    setTimeout(() => {
+      console.log('🔄 Retrying MongoDB connection...');
+      connectDB();
+    }, 10000);
   }
 };
 

@@ -22,10 +22,9 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: false, // Optional for Google OAuth users
+    required: false,
     trim: true,
-    match: [/^[0-9]{10}$/, 'Please provide a valid 10-digit phone number'],
-    default: null
+    match: [/^[0-9]{10}$/, 'Please provide a valid 10-digit phone number']
   },
   googleId: {
     type: String,

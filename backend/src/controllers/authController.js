@@ -42,16 +42,19 @@ exports.sendOTP = async (req, res) => {
     } else {
       // For registration, create or update temp user
       // This allows users to retry with the same email if they didn't complete registration
+      const updateData = { 
+        email,
+        otp,
+        otpExpires,
+        isEmailVerified: false,
+        password: 'temp123' // Will be updated during registration
+      };
+      
+      // Don't set phone field at all - let it be undefined
       const tempUser = await User.findOneAndUpdate(
         { email },
-        { 
-          email,
-          otp,
-          otpExpires,
-          isEmailVerified: false,
-          password: 'temp123' // Will be updated during registration
-        },
-        { upsert: true, new: true }
+        updateData,
+        { upsert: true, new: true, setDefaultsOnInsert: false }
       );
     }
 

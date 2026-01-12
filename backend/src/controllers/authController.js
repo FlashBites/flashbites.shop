@@ -402,8 +402,11 @@ exports.resetPassword = async (req, res) => {
 // @access  Public
 exports.googleAuth = async (req, res) => {
   try {
+    console.log('📱 Google OAuth callback triggered');
+    
     // Check if authentication failed
     if (!req.user) {
+      console.error('❌ No user in request');
       const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3001';
       return res.redirect(`${frontendURL}/login?error=${encodeURIComponent('Authentication failed. Please try again.')}`);
     }
@@ -411,10 +414,12 @@ exports.googleAuth = async (req, res) => {
     // This will be handled by passport middleware
     // User will be attached to req.user by passport
     const user = req.user;
+    console.log('✅ User authenticated:', user.email);
 
     // Generate tokens
     const accessToken = generateToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
+    console.log('🔑 Tokens generated for user:', user.email);
 
     // Save refresh token
     user.refreshToken = refreshToken;
@@ -426,9 +431,11 @@ exports.googleAuth = async (req, res) => {
 
     // Redirect to frontend with tokens
     const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3001';
-    res.redirect(`${frontendURL}/auth/google/success?token=${accessToken}&refresh=${refreshToken}`);
+    const redirectURL = `${frontendURL}/auth/google/success?token=${accessToken}&refresh=${refreshToken}`;
+    console.log('🔄 Redirecting to:', redirectURL);
+    res.redirect(redirectURL);
   } catch (error) {
-    console.error('Google OAuth error:', error);
+    console.error('❌ Google OAuth error in controller:', error);
     const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3001';
     
     // Handle specific error types

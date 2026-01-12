@@ -27,11 +27,14 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
+          console.log('🔐 Google OAuth - Processing user:', profile.emails[0].value);
+          
           // Check if user already exists with this Google ID
           let user = await User.findOne({ googleId: profile.id });
 
           if (user) {
             // User exists, return user
+            console.log('✅ Existing Google user found:', user.email);
             return done(null, user);
           }
 
@@ -40,6 +43,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
           if (user) {
             // Link Google account to existing user
+            console.log('🔗 Linking Google account to existing user:', user.email);
             user.googleId = profile.id;
             user.isEmailVerified = true;
             if (!user.avatar && profile.photos && profile.photos.length > 0) {
@@ -50,6 +54,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           }
 
           // Create new user without phone (will be optional)
+          console.log('➕ Creating new Google user:', profile.emails[0].value);
           const newUser = await User.create({
             googleId: profile.id,
             name: profile.displayName,
@@ -60,8 +65,11 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             phone: null // No phone number, user can add later
           });
 
+          console.log('✅ New Google user created successfully:', newUser.email);
           done(null, newUser);
         } catch (error) {
+          console.error('❌ Google OAuth error:', error.message);
+          console.error('Error details:', error);
           done(error, null);
         }
       }

@@ -110,64 +110,84 @@ const notifyMultipleUsers = async (userIds, notificationData) => {
 
 // Order status change notifications
 const notifyOrderStatus = async (order, status) => {
-  const messages = {
-    confirmed: {
-      title: '✅ Order Confirmed',
-      message: `Your order #${order.orderNumber} has been confirmed by ${order.restaurant?.name || 'the restaurant'}`,
-      type: 'order_confirmed'
-    },
-    preparing: {
-      title: '👨‍🍳 Preparing Your Order',
-      message: `Your order #${order.orderNumber} is being prepared`,
-      type: 'order_preparing'
-    },
-    ready: {
-      title: '✨ Order Ready',
-      message: `Your order #${order.orderNumber} is ready for pickup`,
-      type: 'order_ready'
-    },
-    picked_up: {
-      title: '🚴 On the Way',
-      message: `Your order #${order.orderNumber} has been picked up and is on the way`,
-      type: 'order_picked_up'
-    },
-    delivered: {
-      title: '🎉 Order Delivered',
-      message: `Your order #${order.orderNumber} has been delivered. Enjoy your meal!`,
-      type: 'order_delivered'
-    },
-    cancelled: {
-      title: '❌ Order Cancelled',
-      message: `Your order #${order.orderNumber} has been cancelled`,
-      type: 'order_cancelled',
-      priority: 'high'
-    }
-  };
-
-  const notificationData = messages[status];
-  if (!notificationData) return;
-
-  notificationData.data = {
-    orderId: order._id,
-    orderNumber: order.orderNumber,
-    restaurantId: order.restaurant?._id
-  };
-
-  // Notify customer
-  await notifyUser(order.user, notificationData);
-
-  // Notify restaurant owner if new order
-  if (status === 'confirmed') {
-    await notifyUser(order.restaurant.owner, {
-      title: '🔔 New Order Received',
-      message: `New order #${order.orderNumber} - ₹${order.totalAmount}`,
-      type: 'order_placed',
-      priority: 'high',
-      data: {
-        orderId: order._id,
-        orderNumber: order.orderNumber
+  try {
+    console.log('📧 [notifyOrderStatus] Start - Status:', status, 'OrderID:', order._id);
+    
+    // Use _id as fallback for orderNumber if it's undefined
+    const orderRef = order.orderNumber || order._id.toString().slice(-8);
+    
+    const messages = {
+      confirmed: {
+        title: '✅ Order Confirmed',
+        message: `Your order #${orderRef} has been confirmed by ${order.restaurantId?.name || 'the restaurant'}`,
+        type: 'order_confirmed'
+      },
+      preparing: {
+        title: '👨‍🍳 Preparing Your Order',
+        message: `Your order #${orderRef} is being prepared`,
+        type: 'order_preparing'
+      },
+      ready: {
+        title: '✨ Order Ready',
+        message: `Your order #${orderRef} is ready for pickup`,
+        type: 'order_ready'
+      },
+      picked_up: {
+        title: '🚴 On the Way',
+        message: `Your order #${orderRef} has been picked up and is on the way`,
+        type: 'order_picked_up'
+      },
+      delivered: {
+        title: '🎉 Order Delivered',
+        message: `Your order #${orderRef} has been delivered. Enjoy your meal!`,
+        type: 'order_delivered'
+      },
+      cancelled: {
+        title: '❌ Order Cancelled',
+        message: `Your order #${orderRef} has been cancelled`,
+        type: 'order_cancelled',
+        priority: 'high'
       }
-    });
+    };
+
+    const notificationData = messages[status];
+    if (!notificationData) {
+      console.log('⚠️ [notifyOrderStatus] No message template for status:', status);
+      return;
+    }
+
+    notificationData.data = {
+      orderId: order._id,
+      orderNumber: orderRef,
+      restaurantId: order.restaurantId?._id
+    };
+
+    // Notify customer (use userId instead of user)
+    if (order.userId) {
+      console.log('✓ [notifyOrderStatus] Notifying customer:', order.userId._id || order.userId);
+      await notifyUser(order.userId._id || order.userId, notificationData);
+    }
+
+    // Notify restaurant owner if new order
+    if (status === 'confirmed' && order.restaurantId?.ownerId) {
+      console.log('✓ [notifyOrderStatus] Notifying restaurant owner');
+      await notifyUser(order.restaurantId.ownerId, {
+        title: '🔔 New Order Received',
+        message: `New order #${orderRef} - ₹${order.total || order.totalAmount}`,
+        type: 'order_placed',
+        priority: 'high',
+        data: {
+          orderId: order._id,
+          orderNumber: orderRef
+        }
+      });
+    }
+    
+    console.log('✅ [notifyOrderStatus] Complete');
+  } catch (error) {
+    console.error('❌ [notifyOrderStatus] Error:', error.message);
+    console.error(error.stack);
+    // Don't throw - let the request continue even if notification fails
   }
 };
 

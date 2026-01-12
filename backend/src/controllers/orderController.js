@@ -312,7 +312,11 @@ exports.updateOrderStatus = async (req, res) => {
     console.log('✓ [updateOrderStatus] Populating order data...');
     const populatedOrder = await Order.findById(order._id)
       .populate('userId', 'name email phone')
-      .populate('restaurantId', 'name phone address')
+      .populate({
+        path: 'restaurantId',
+        select: 'name phone address ownerId',
+        populate: { path: 'ownerId', select: '_id name email' }
+      })
       .populate('items.menuItemId', 'name price');
 
     console.log('✓ [updateOrderStatus] Order populated successfully');

@@ -314,10 +314,11 @@ exports.updateOrderStatus = async (req, res) => {
     };
     
     if (statusMap[status]) {
-      await notifyOrderStatus(order, statusMap[status]);
+      // Use populatedOrder for both notifications
+      await notifyOrderStatus(populatedOrder, statusMap[status]);
       
       // Send real-time notification to user with sound
-      notifyUserOrderUpdate(order.userId, populatedOrder);
+      notifyUserOrderUpdate(populatedOrder.userId, populatedOrder);
     }
 
     successResponse(res, 200, 'Order status updated successfully', { order: populatedOrder });

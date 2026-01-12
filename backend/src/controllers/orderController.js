@@ -168,9 +168,9 @@ exports.createOrder = async (req, res) => {
 
     // Populate order details for notifications
     const populatedOrder = await Order.findById(order._id)
-      .populate('user', 'name email phone')
-      .populate('restaurant', 'name phone address')
-      .populate('items.menuItem', 'name price');
+      .populate('userId', 'name email phone')
+      .populate('restaurantId', 'name phone address')
+      .populate('items.menuItemId', 'name price');
 
     // Send real-time notifications with sound
     try {
@@ -299,9 +299,9 @@ exports.updateOrderStatus = async (req, res) => {
 
     // Populate order details for notifications
     const populatedOrder = await Order.findById(order._id)
-      .populate('user', 'name email phone')
-      .populate('restaurant', 'name phone address')
-      .populate('items.menuItem', 'name price');
+      .populate('userId', 'name email phone')
+      .populate('restaurantId', 'name phone address')
+      .populate('items.menuItemId', 'name price');
 
     // Send notification for status update
     const statusMap = {
@@ -317,7 +317,7 @@ exports.updateOrderStatus = async (req, res) => {
       await notifyOrderStatus(order, statusMap[status]);
       
       // Send real-time notification to user with sound
-      notifyUserOrderUpdate(order.user._id || order.user, populatedOrder);
+      notifyUserOrderUpdate(order.userId, populatedOrder);
     }
 
     successResponse(res, 200, 'Order status updated successfully', { order: populatedOrder });

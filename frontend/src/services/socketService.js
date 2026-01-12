@@ -12,7 +12,13 @@ class SocketService {
       return;
     }
 
-    const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    // Get backend URL and remove /api path for Socket.IO
+    let BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    // Remove /api suffix if present (Socket.IO connects to root)
+    BACKEND_URL = BACKEND_URL.replace(/\/api\/?$/, '');
+    
+    console.log('🔌 Connecting to Socket.IO:', BACKEND_URL);
     
     this.socket = io(BACKEND_URL, {
       auth: { token },

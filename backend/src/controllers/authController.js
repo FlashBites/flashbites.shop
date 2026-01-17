@@ -134,7 +134,7 @@ exports.register = async (req, res) => {
     }
 
     // Validate role
-    const validRoles = ['user', 'restaurant_owner'];
+    const validRoles = ['user', 'restaurant_owner', 'delivery_partner'];
     if (role && !validRoles.includes(role)) {
       return errorResponse(res, 400, 'Invalid role specified');
     }

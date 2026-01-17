@@ -11,6 +11,11 @@ const orderSchema = new mongoose.Schema({
     ref: 'Restaurant',
     required: true
   },
+  deliveryPartnerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   addressId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Address'

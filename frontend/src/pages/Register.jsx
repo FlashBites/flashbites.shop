@@ -109,6 +109,8 @@ const Register = () => {
       setTimeout(() => {
         if (user.role === 'restaurant_owner') {
           navigate('/dashboard');
+        } else if (user.role === 'delivery_partner') {
+          navigate('/delivery-dashboard');
         } else {
           navigate('/');
         }
@@ -299,6 +301,7 @@ const Register = () => {
                 >
                   <option value="user">Order Food</option>
                   <option value="restaurant_owner">Register My Restaurant</option>
+                  <option value="delivery_partner">Become a Delivery Partner</option>
                 </select>
               </div>
 

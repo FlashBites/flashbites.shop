@@ -21,6 +21,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import RestaurantPage from './pages/RestaurantPage';
 import RestaurantDetail from './pages/RestaurantDetail';
 import RestaurantDashboard from './pages/RestaurantDashboard';
+import DeliveryPartnerDashboard from './pages/DeliveryPartnerDashboard';
 import AdminPanel from './pages/AdminPanel';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
@@ -140,6 +141,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RestaurantDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/delivery-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DeliveryPartnerDashboard />
                   </ProtectedRoute>
                 }
               />

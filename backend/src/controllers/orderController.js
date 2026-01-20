@@ -4,6 +4,14 @@ const MenuItem = require('../models/MenuItem');
 const Address = require('../models/Address');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
 const { 
+  sendOrderConfirmationSMS, 
+  sendDeliveryOtpSMS,
+  sendOutForDeliverySMS,
+  sendOrderDeliveredSMS,
+  sendOrderCancelledSMS,
+  sendOrderReadySMS
+} = require('../utils/smsService');
+const { 
   notifyOrderStatus, 
   notifyRestaurantNewOrder, 
   notifyUserOrderPlaced,
@@ -317,7 +325,7 @@ exports.createOrder = async (req, res) => {
       // Database + Push notification to user
       await notifyUserOrderPlaced(populatedOrder);
       
-      // Send delivery OTP to customer
+      // Send delivery OTP to customer via Email and SMS
       try {
         const { sendEmail } = require('../utils/emailService');
         const user = await User.findById(req.user._id);
@@ -340,8 +348,20 @@ exports.createOrder = async (req, res) => {
           );
           console.log(`📧 Delivery OTP sent to ${user.email}`);
         }
+        
+        // Send SMS for order confirmation with OTP
+        if (user && user.phone) {
+          await sendOrderConfirmationSMS(
+            user.phone,
+            order._id.toString(),
+            restaurant.name,
+            total,
+            deliveryOtp
+          );
+          console.log(`📱 Order confirmation SMS sent to ${user.phone}`);
+        }
       } catch (emailError) {
-        console.error('Failed to send delivery OTP email:', emailError);
+        console.error('Failed to send delivery OTP email/SMS:', emailError);
       }
       
       if (paymentMethod !== 'cod') {
@@ -591,6 +611,16 @@ exports.updateOrderStatus = async (req, res) => {
           if (populatedOrder.deliveryPartnerId) {
             await notifyDeliveryPartnerOrderReady(populatedOrder, populatedOrder.deliveryPartnerId);
           }
+          
+          // Send SMS to customer that order is ready
+          if (populatedOrder.userId && populatedOrder.userId.phone && populatedOrder.restaurantId) {
+            await sendOrderReadySMS(
+              populatedOrder.userId.phone,
+              populatedOrder._id.toString(),
+              populatedOrder.restaurantId.name
+            );
+            console.log(`📱 Order ready SMS sent to ${populatedOrder.userId.phone}`);
+          }
         }
         
         if (status === 'out_for_delivery' && populatedOrder.paymentMethod === 'cod') {
@@ -697,6 +727,16 @@ exports.cancelOrder = async (req, res) => {
         const userIdStr = populatedOrder.userId._id ? populatedOrder.userId._id.toString() : populatedOrder.userId.toString();
         notifyUserOrderUpdate(userIdStr, populatedOrder);
         console.log('✓ [cancelOrder] User notified');
+      }
+      
+      // Send SMS to customer about cancellation
+      if (populatedOrder.userId && populatedOrder.userId.phone) {
+        await sendOrderCancelledSMS(
+          populatedOrder.userId.phone,
+          populatedOrder._id.toString(),
+          order.cancellationReason
+        );
+        console.log(`📱 Order cancellation SMS sent to ${populatedOrder.userId.phone}`);
       }
       
       // Notify restaurant about cancellation

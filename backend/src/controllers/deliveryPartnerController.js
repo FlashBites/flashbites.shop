@@ -2,6 +2,10 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
 const { 
+  sendOutForDeliverySMS,
+  sendOrderDeliveredSMS
+} = require('../utils/smsService');
+const { 
   notifyUserDeliveryAssigned,
   notifyDeliveryPartnerAssignment
 } = require('../utils/notificationService');
@@ -103,6 +107,17 @@ exports.acceptOrder = async (req, res) => {
         const userIdStr = updatedOrder.userId._id ? updatedOrder.userId._id.toString() : updatedOrder.userId.toString();
         notifyUserOrderUpdate(userIdStr, updatedOrder);
       }
+      
+      // Send SMS to customer about out for delivery status
+      if (updatedOrder.userId && updatedOrder.userId.phone) {
+        await sendOutForDeliverySMS(
+          updatedOrder.userId.phone,
+          updatedOrder._id.toString(),
+          req.user.name,
+          req.user.phone
+        );
+        console.log(`📱 Out for delivery SMS sent to ${updatedOrder.userId.phone}`);
+      }
     } catch (notifyError) {
       console.error('Failed to send delivery assignment notification:', notifyError);
     }
@@ -158,6 +173,19 @@ exports.markAsDelivered = async (req, res) => {
       .populate('userId', 'name phone')
       .populate('restaurantId', 'name address phone location')
       .populate('addressId');
+
+    // Send SMS notification for delivered order
+    try {
+      if (updatedOrder.userId && updatedOrder.userId.phone) {
+        await sendOrderDeliveredSMS(
+          updatedOrder.userId.phone,
+          updatedOrder._id.toString()
+        );
+        console.log(`📱 Order delivered SMS sent to ${updatedOrder.userId.phone}`);
+      }
+    } catch (smsError) {
+      console.error('Failed to send delivery SMS:', smsError);
+    }
 
     return successResponse(res, 200, 'Order marked as delivered successfully', { order: updatedOrder });
   } catch (error) {

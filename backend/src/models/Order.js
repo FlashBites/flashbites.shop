@@ -99,6 +99,10 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  deliveryOtp: {
+    type: String,
+    default: null
+  },
   // Live tracking data
   deliveryPartnerLocation: {
     type: {

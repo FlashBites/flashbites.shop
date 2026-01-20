@@ -275,6 +275,11 @@ exports.createOrder = async (req, res) => {
     const order = await Order.create(orderDoc);
     console.log('Order created successfully:', order._id);
 
+    // Generate 4-digit delivery OTP
+    const deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    order.deliveryOtp = deliveryOtp;
+    console.log(`🔐 Generated delivery OTP: ${deliveryOtp} for order ${order._id}`);
+
     // Set payment status based on payment method
     if (paymentMethod === 'cod') {
       // COD - payment pending until delivery
@@ -311,6 +316,33 @@ exports.createOrder = async (req, res) => {
       
       // Database + Push notification to user
       await notifyUserOrderPlaced(populatedOrder);
+      
+      // Send delivery OTP to customer
+      try {
+        const { sendEmail } = require('../utils/emailService');
+        const user = await User.findById(req.user._id);
+        if (user && user.email) {
+          await sendEmail(
+            user.email,
+            'Your Order Delivery OTP',
+            `<div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9fafb; border-radius: 8px;">
+              <h2 style="color: #ea580c;">🔐 Your Delivery OTP</h2>
+              <p>Hello ${user.name},</p>
+              <p>Your order <strong>#${order._id.toString().slice(-8)}</strong> has been confirmed!</p>
+              <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; border: 2px solid #ea580c;">
+                <p style="margin: 0; font-size: 14px; color: #666;">Your Delivery OTP</p>
+                <p style="margin: 10px 0; font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #ea580c;">${deliveryOtp}</p>
+                <p style="margin: 0; font-size: 12px; color: #999;">Share this OTP with the delivery partner upon delivery</p>
+              </div>
+              <p style="color: #666; font-size: 14px;">Please keep this OTP confidential and only share it with the delivery partner when you receive your order.</p>
+              <p style="color: #999; font-size: 12px; margin-top: 30px;">Thank you for ordering with FlashBites!</p>
+            </div>`
+          );
+          console.log(`📧 Delivery OTP sent to ${user.email}`);
+        }
+      } catch (emailError) {
+        console.error('Failed to send delivery OTP email:', emailError);
+      }
       
       if (paymentMethod !== 'cod') {
         console.log(`⚠️ WARNING: Online payment not confirmed yet!`);

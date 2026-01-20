@@ -136,6 +136,18 @@ exports.markAsDelivered = async (req, res) => {
       return errorResponse(res, 400, 'Order is not out for delivery');
     }
 
+    // Verify delivery OTP
+    if (!otp) {
+      return errorResponse(res, 400, 'Delivery OTP is required');
+    }
+
+    if (otp !== order.deliveryOtp) {
+      console.log(`❌ Invalid OTP attempt: Expected ${order.deliveryOtp}, Got ${otp}`);
+      return errorResponse(res, 400, 'Invalid delivery OTP. Please ask the customer for the correct OTP.');
+    }
+
+    console.log(`✅ OTP verified successfully for order ${orderId}`);
+
     // Mark as delivered
     order.status = 'delivered';
     order.deliveredAt = new Date();

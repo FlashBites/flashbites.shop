@@ -327,35 +327,35 @@ const DeliveryPartnerDashboard = () => {
     const timeline = getOrderTimeline(order);
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+        <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto my-2 sm:my-4">
           {/* Header */}
-          <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-t-xl z-10">
+          <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 sm:p-6 rounded-t-xl z-10">
             <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-2xl font-bold mb-1">Order #{order._id.slice(-8)}</h2>
-                <p className="text-orange-100 text-sm">{formatDateTime(order.createdAt)}</p>
+              <div className="flex-1 min-w-0 pr-2">
+                <h2 className="text-xl sm:text-2xl font-bold mb-1 truncate">Order #{order._id.slice(-8)}</h2>
+                <p className="text-orange-100 text-xs sm:text-sm">{formatDateTime(order.createdAt)}</p>
               </div>
-              <button onClick={onClose} className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2">
-                <XMarkIcon className="h-6 w-6" />
+              <button onClick={onClose} className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 flex-shrink-0">
+                <XMarkIcon className="h-5 w-6 sm:h-6" />
               </button>
             </div>
 
             {/* Order Timeline */}
-            <div className="mt-6">
-              <div className="flex justify-between items-center">
+            <div className="mt-4 sm:mt-6 overflow-x-auto">
+              <div className="flex justify-between items-center min-w-[500px] sm:min-w-0">
                 {timeline.map((step, index) => (
                   <div key={step.status} className="flex items-center flex-1">
                     <div className="flex flex-col items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
                         step.completed ? 'bg-white text-orange-600' : 'bg-orange-300 text-orange-600'
                       }`}>
                         {step.completed ? '✓' : index + 1}
                       </div>
-                      <span className="text-xs mt-1 text-center whitespace-nowrap">{step.label}</span>
+                      <span className="text-[10px] sm:text-xs mt-1 text-center whitespace-nowrap px-1">{step.label}</span>
                     </div>
                     {index < timeline.length - 1 && (
-                      <div className={`flex-1 h-1 mx-2 ${
+                      <div className={`flex-1 h-0.5 sm:h-1 mx-1 sm:mx-2 ${
                         step.completed ? 'bg-white' : 'bg-orange-300'
                       }`}></div>
                     )}
@@ -365,35 +365,35 @@ const DeliveryPartnerDashboard = () => {
             </div>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Pickup Location */}
-            <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-bold text-gray-900 text-lg flex items-center">
+            <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border-2 border-blue-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0 mb-3">
+                <h3 className="font-bold text-gray-900 text-base sm:text-lg flex items-center">
                   <span className="mr-2">🏪</span> Pickup From
                 </h3>
                 <button
                   onClick={() => openGoogleMaps(restaurantLat, restaurantLng, order.restaurantId?.name)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1"
+                  className="bg-blue-600 text-white px-3 py-1.5 sm:py-1 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-700 flex items-center gap-1 w-full sm:w-auto justify-center"
                 >
-                  <MapPinIcon className="h-4 w-4" />
+                  <MapPinIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                   Navigate
                 </button>
               </div>
-              <p className="font-semibold text-gray-900">{order.restaurantId?.name || 'Restaurant details not available'}</p>
-              <p className="text-sm text-gray-700 mt-1">
+              <p className="font-semibold text-gray-900 text-sm sm:text-base">{order.restaurantId?.name || 'Restaurant details not available'}</p>
+              <p className="text-xs sm:text-sm text-gray-700 mt-1">
                 {order.restaurantId?.address?.street || 'Address not available'}<br />
                 {order.restaurantId?.address?.city && order.restaurantId?.address?.state
                   ? `${order.restaurantId.address.city}, ${order.restaurantId.address.state}`
                   : 'Location details not available'}
               </p>
-              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-blue-200">
-                <a href={`tel:${order.restaurantId?.phone}`} className="flex items-center gap-1 text-blue-600 font-medium text-sm">
-                  <PhoneIcon className="h-4 w-4" />
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-3 pt-3 border-t border-blue-200">
+                <a href={`tel:${order.restaurantId?.phone}`} className="flex items-center gap-1 text-blue-600 font-medium text-xs sm:text-sm">
+                  <PhoneIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                   {order.restaurantId?.phone}
                 </a>
                 {distanceToRestaurant && (
-                  <span className="text-sm text-gray-600">
+                  <span className="text-xs sm:text-sm text-gray-600">
                     📍 {distanceToRestaurant.toFixed(1)} km away
                   </span>
                 )}
@@ -401,21 +401,21 @@ const DeliveryPartnerDashboard = () => {
             </div>
 
             {/* Delivery Location */}
-            <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-bold text-gray-900 text-lg flex items-center">
+            <div className="bg-green-50 rounded-lg p-3 sm:p-4 border-2 border-green-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0 mb-3">
+                <h3 className="font-bold text-gray-900 text-base sm:text-lg flex items-center">
                   <span className="mr-2">📍</span> Deliver To
                 </h3>
                 <button
                   onClick={() => openGoogleMaps(customerLat, customerLng, order.userId?.name)}
-                  className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1"
+                  className="bg-green-600 text-white px-3 py-1.5 sm:py-1 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-700 flex items-center gap-1 w-full sm:w-auto justify-center"
                 >
-                  <MapPinIcon className="h-4 w-4" />
+                  <MapPinIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                   Navigate
                 </button>
               </div>
-              <p className="font-semibold text-gray-900">{order.userId?.name || 'Customer name not available'}</p>
-              <p className="text-sm text-gray-700 mt-1">
+              <p className="font-semibold text-gray-900 text-sm sm:text-base">{order.userId?.name || 'Customer name not available'}</p>
+              <p className="text-xs sm:text-sm text-gray-700 mt-1">
                 {order.addressId?.street || 'Address not available'}
                 {order.addressId?.landmark && `, ${order.addressId.landmark}`}<br />
                 {order.addressId?.city && order.addressId?.state && order.addressId?.zipCode
@@ -429,13 +429,13 @@ const DeliveryPartnerDashboard = () => {
                   </p>
                 </div>
               )}
-              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-green-200">
-                <a href={`tel:${order.userId?.phone}`} className="flex items-center gap-1 text-green-600 font-medium text-sm">
-                  <PhoneIcon className="h-4 w-4" />
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-3 pt-3 border-t border-green-200">
+                <a href={`tel:${order.userId?.phone}`} className="flex items-center gap-1 text-green-600 font-medium text-xs sm:text-sm">
+                  <PhoneIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                   {order.userId?.phone}
                 </a>
                 {distanceToCustomer && (
-                  <span className="text-sm text-gray-600">
+                  <span className="text-xs sm:text-sm text-gray-600">
                     📍 {distanceToCustomer.toFixed(1)} km away
                   </span>
                 )}
@@ -443,59 +443,59 @@ const DeliveryPartnerDashboard = () => {
             </div>
 
             {/* Order Items */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center text-sm sm:text-base">
                 <span className="mr-2">📦</span> Order Items ({order.items?.length})
               </h3>
               <div className="space-y-2">
                 {order.items?.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-start bg-white p-3 rounded border">
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">
+                  <div key={idx} className="flex justify-between items-start bg-white p-2 sm:p-3 rounded border">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">
                         {item.name}
                         {item.selectedVariant && <span className="text-gray-600"> ({item.selectedVariant})</span>}
                       </p>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Qty: {item.quantity}</p>
                     </div>
-                    <p className="font-semibold text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base flex-shrink-0">{formatCurrency(item.price * item.quantity)}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Payment Summary */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-bold text-gray-900 mb-3">Payment Details</h3>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="font-bold text-gray-900 mb-3 text-sm sm:text-base">Payment Details</h3>
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium">{formatCurrency(order.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-gray-600">Delivery Fee</span>
                   <span className="font-medium text-green-600">{formatCurrency(order.deliveryFee)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-gray-600">Tax</span>
                   <span className="font-medium">{formatCurrency(order.tax)}</span>
                 </div>
                 {order.discount > 0 && (
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-600">Discount</span>
                     <span className="font-medium text-red-600">-{formatCurrency(order.discount)}</span>
                   </div>
                 )}
                 <div className="pt-2 border-t border-gray-300 flex justify-between">
-                  <span className="font-bold text-gray-900">Total</span>
-                  <span className="font-bold text-gray-900 text-lg">{formatCurrency(order.total)}</span>
+                  <span className="font-bold text-gray-900 text-sm sm:text-base">Total</span>
+                  <span className="font-bold text-gray-900 text-base sm:text-lg">{formatCurrency(order.total)}</span>
                 </div>
                 <div className="pt-2 border-t border-gray-300">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Payment Method</span>
-                    <span className="font-semibold text-gray-900 uppercase">{order.paymentMethod}</span>
+                    <span className="text-xs sm:text-sm text-gray-600">Payment Method</span>
+                    <span className="font-semibold text-gray-900 uppercase text-xs sm:text-sm">{order.paymentMethod}</span>
                   </div>
                   <div className="flex justify-between items-center mt-1">
-                    <span className="text-sm text-gray-600">Payment Status</span>
+                    <span className="text-xs sm:text-sm text-gray-600">Payment Status</span>
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${
                       order.paymentStatus === 'completed' ? 'bg-green-100 text-green-800' :
                       order.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -519,11 +519,11 @@ const DeliveryPartnerDashboard = () => {
             <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-green-100 text-sm">Your Earning from this order</p>
-                  <p className="text-3xl font-bold">{formatCurrency(order.deliveryFee)}</p>
+                  <p className="text-green-100 text-xs sm:text-sm">Your Earning from this order</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(order.deliveryFee)}</p>
                 </div>
-                <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                  <CurrencyDollarIcon className="h-8 w-8" />
+                <div className="bg-white bg-opacity-20 p-2 sm:p-3 rounded-full flex-shrink-0">
+                  <CurrencyDollarIcon className="h-6 w-6 sm:h-8 sm:w-8" />
                 </div>
               </div>
             </div>
@@ -534,9 +534,9 @@ const DeliveryPartnerDashboard = () => {
                 <button
                   onClick={() => handlePickupOrder(order._id)}
                   disabled={actionLoading === order._id}
-                  className="w-full bg-blue-600 text-white py-4 px-4 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-blue-600 text-white py-3 sm:py-4 px-4 rounded-lg font-semibold text-sm sm:text-base hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  <TruckIcon className="h-5 w-5" />
+                  <TruckIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                   {actionLoading === order._id ? 'Updating...' : 'Picked Up - On the Way'}
                 </button>
               )}
@@ -544,7 +544,7 @@ const DeliveryPartnerDashboard = () => {
               {order.status === 'out_for_delivery' && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       Enter 4-Digit Delivery OTP
                     </label>
                     <input
@@ -554,16 +554,16 @@ const DeliveryPartnerDashboard = () => {
                       value={deliveryOtp}
                       onChange={(e) => setDeliveryOtp(e.target.value.replace(/\D/g, ''))}
                       placeholder="1234"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full px-4 py-2 sm:py-3 border-2 border-gray-300 rounded-lg text-center text-xl sm:text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">Ask the customer for their delivery OTP</p>
                   </div>
                   <button
                     onClick={() => handleMarkDelivered(order._id)}
                     disabled={actionLoading === order._id || !deliveryOtp || deliveryOtp.length !== 4}
-                    className="w-full bg-green-600 text-white py-4 px-4 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-green-600 text-white py-3 sm:py-4 px-4 rounded-lg font-semibold text-sm sm:text-base hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    <CheckCircleIcon className="h-5 w-5" />
+                    <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                     {actionLoading === order._id ? 'Verifying...' : 'Mark as Delivered'}
                   </button>
                 </div>
@@ -723,22 +723,22 @@ const DeliveryPartnerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="py-6 md:py-8">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
+            <div className="w-full lg:w-auto">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Delivery Partner Dashboard
               </h1>
               <p className="text-gray-600">Welcome back, {user?.name}! 🚴</p>
             </div>
             
             {/* Controls */}
-            <div className="flex gap-3">
+            <div className="w-full lg:w-auto flex flex-col sm:flex-row gap-3">
               {/* Auto-Refresh Toggle */}
-              <div className="bg-white rounded-lg shadow p-4">
+              <div className="bg-white rounded-lg shadow p-4 flex-1 sm:flex-none">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <ArrowPathIcon className={`h-5 w-5 ${autoRefreshEnabled ? 'text-green-600 animate-spin' : 'text-gray-400'}`} />
@@ -763,7 +763,7 @@ const DeliveryPartnerDashboard = () => {
               </div>
 
               {/* Location Tracking Status */}
-              <div className="bg-white rounded-lg shadow p-4 min-w-[200px]">
+              <div className="bg-white rounded-lg shadow p-4 flex-1 sm:flex-none sm:min-w-[200px]">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <span className="text-sm font-semibold text-gray-700">GPS Tracking</span>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -806,86 +806,90 @@ const DeliveryPartnerDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-blue-500">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Deliveries</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalDeliveries || 0}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">Total Deliveries</p>
+                <p className="text-xl sm:text-3xl font-bold text-gray-900">{stats.totalDeliveries || 0}</p>
               </div>
-              <div className="bg-blue-100 p-4 rounded-full">
-                <span className="text-3xl">📦</span>
+              <div className="bg-blue-100 p-2 sm:p-4 rounded-full flex-shrink-0 ml-2">
+                <span className="text-xl sm:text-3xl">📦</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-green-500">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Today's Deliveries</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.todayDeliveries || 0}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">Today's Deliveries</p>
+                <p className="text-xl sm:text-3xl font-bold text-gray-900">{stats.todayDeliveries || 0}</p>
               </div>
-              <div className="bg-green-100 p-4 rounded-full">
-                <span className="text-3xl">✅</span>
+              <div className="bg-green-100 p-2 sm:p-4 rounded-full flex-shrink-0 ml-2">
+                <span className="text-xl sm:text-3xl">✅</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-orange-500">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Active Orders</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.activeOrders || 0}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">Active Orders</p>
+                <p className="text-xl sm:text-3xl font-bold text-gray-900">{stats.activeOrders || 0}</p>
               </div>
-              <div className="bg-orange-100 p-4 rounded-full">
-                <span className="text-3xl">🚴</span>
+              <div className="bg-orange-100 p-2 sm:p-4 rounded-full flex-shrink-0 ml-2">
+                <span className="text-xl sm:text-3xl">🚴</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-600">
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-green-600">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Earnings</p>
-                <p className="text-2xl font-bold text-green-600">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">Total Earnings</p>
+                <p className="text-lg sm:text-2xl font-bold text-green-600">
                   {formatCurrency(stats.totalEarnings || 0)}
                 </p>
               </div>
-              <div className="bg-green-100 p-4 rounded-full">
-                <span className="text-3xl">💰</span>
+              <div className="bg-green-100 p-2 sm:p-4 rounded-full flex-shrink-0 ml-2">
+                <span className="text-xl sm:text-3xl">💰</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-md mb-6">
+        <div className="bg-white rounded-xl shadow-md mb-6 overflow-hidden">
           <div className="flex border-b">
             <button
               onClick={() => setActiveTab('available')}
-              className={`flex-1 py-4 px-6 font-semibold transition-colors ${
+              className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 font-semibold text-sm sm:text-base transition-colors ${
                 activeTab === 'available'
                   ? 'border-b-4 border-orange-600 text-orange-600'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Available Orders ({availableOrders.length})
+              <span className="hidden sm:inline">Available Orders</span>
+              <span className="sm:hidden">Available</span>
+              <span className="ml-1">({availableOrders.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('assigned')}
-              className={`flex-1 py-4 px-6 font-semibold transition-colors ${
+              className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 font-semibold text-sm sm:text-base transition-colors ${
                 activeTab === 'assigned'
                   ? 'border-b-4 border-orange-600 text-orange-600'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              My Orders ({assignedOrders.length})
+              <span className="hidden sm:inline">My Orders</span>
+              <span className="sm:hidden">My Orders</span>
+              <span className="ml-1">({assignedOrders.length})</span>
             </button>
           </div>
         </div>
 
         {/* Orders Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {activeTab === 'available' ? (
             availableOrders.length > 0 ? (
               availableOrders.map((order) => (

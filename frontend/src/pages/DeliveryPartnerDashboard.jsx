@@ -171,7 +171,13 @@ const DeliveryPartnerDashboard = () => {
 
   useEffect(() => {
     if (locationError) {
-      toast.error(locationError);
+      // Only show error toast if it's a permission error
+      if (locationError.includes('permission denied')) {
+        toast.error(locationError, { duration: 6000, id: 'location-error' });
+      } else {
+        // Just log other errors, don't spam the user
+        console.warn('Location tracking issue:', locationError);
+      }
     }
   }, [locationError]);
 

@@ -120,8 +120,8 @@ export const useLocationTracking = (orderId, isEnabled = true, interval = 10000)
           break;
         case err.POSITION_UNAVAILABLE:
           errorMessage = 'Location currently unavailable. GPS signal may be weak.';
-          // Only show toast if this is a new error
-          shouldShowToast = lastErrorRef.current !== 'POSITION_UNAVAILABLE';
+          // Only show toast if this is a new error - don't spam
+          shouldShowToast = false; // Changed to never show toast for this
           break;
         case err.TIMEOUT:
           errorMessage = 'Location request timed out. Retrying...';
@@ -134,7 +134,13 @@ export const useLocationTracking = (orderId, isEnabled = true, interval = 10000)
       }
       
       setError(errorMessage);
-      console.warn('⚠️ Geolocation error:', errorMessage, 'Code:', err.code);
+      
+      // Only log position unavailable and timeout as debug info, not warnings
+      if (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT) {
+        console.log('ℹ️ Location update:', errorMessage);
+      } else {
+        console.warn('⚠️ Geolocation error:', errorMessage, 'Code:', err.code);
+      }
       
       // Only show toast for critical errors and if not shown recently
       if (shouldShowToast && !errorToastShownRef.current) {
@@ -164,8 +170,10 @@ export const useLocationTracking = (orderId, isEnabled = true, interval = 10000)
         console.log('📍 Initial location obtained:', { latitude, longitude });
       },
       (err) => {
-        console.warn('⚠️ Initial location fetch failed, will retry with watchPosition:', err.message);
-        // Don't set error state here, watchPosition will handle it
+        // Silent failure - watchPosition will handle continuous tracking
+        if (err.code !== 2) { // Only log if not POSITION_UNAVAILABLE
+          console.log('ℹ️ Initial location fetch skipped, using continuous tracking');
+        }
       },
       geoOptions
     );

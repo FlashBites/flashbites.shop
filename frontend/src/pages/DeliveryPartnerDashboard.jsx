@@ -172,12 +172,10 @@ const DeliveryPartnerDashboard = () => {
   useEffect(() => {
     if (locationError) {
       // Only show error toast if it's a permission error
-      if (locationError.includes('permission denied')) {
+      if (locationError.toLowerCase().includes('permission denied')) {
         toast.error(locationError, { duration: 6000, id: 'location-error' });
-      } else {
-        // Just log other errors, don't spam the user
-        console.warn('Location tracking issue:', locationError);
       }
+      // Silent for other errors - they're already logged in the hook
     }
   }, [locationError]);
 
@@ -217,10 +215,20 @@ const DeliveryPartnerDashboard = () => {
   const handleAcceptOrder = async (orderId) => {
     setActionLoading(orderId);
     try {
-      await acceptOrder(orderId);
+      const response = await acceptOrder(orderId);
       toast.success('Order accepted successfully! 🎉');
-      fetchData();
+      
+      // Refresh data to get fully populated order
+      await fetchData();
+      
+      // Switch to assigned tab
       setActiveTab('assigned');
+      
+      // If response has the order, show it in modal
+      if (response.data?.order) {
+        setSelectedOrder(response.data.order);
+        setShowOrderDetail(true);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to accept order');
     } finally {
@@ -290,7 +298,18 @@ const DeliveryPartnerDashboard = () => {
   };
 
   const OrderDetailModal = ({ order, onClose }) => {
-    if (!order) return null;
+    if (!order) {
+      console.warn('⚠️ Order detail modal opened with no order');
+      return null;
+    }
+
+    console.log('📋 Order details modal opened:', {
+      orderId: order._id,
+      hasRestaurant: !!order.restaurantId,
+      hasAddress: !!order.addressId,
+      hasUser: !!order.userId,
+      itemsCount: order.items?.length
+    });
 
     const restaurantLat = order.restaurantId?.location?.coordinates?.[1];
     const restaurantLng = order.restaurantId?.location?.coordinates?.[0];
@@ -361,10 +380,12 @@ const DeliveryPartnerDashboard = () => {
                   Navigate
                 </button>
               </div>
-              <p className="font-semibold text-gray-900">{order.restaurantId?.name}</p>
+              <p className="font-semibold text-gray-900">{order.restaurantId?.name || 'Restaurant details not available'}</p>
               <p className="text-sm text-gray-700 mt-1">
-                {order.restaurantId?.address?.street}<br />
-                {order.restaurantId?.address?.city}, {order.restaurantId?.address?.state}
+                {order.restaurantId?.address?.street || 'Address not available'}<br />
+                {order.restaurantId?.address?.city && order.restaurantId?.address?.state
+                  ? `${order.restaurantId.address.city}, ${order.restaurantId.address.state}`
+                  : 'Location details not available'}
               </p>
               <div className="flex items-center gap-4 mt-3 pt-3 border-t border-blue-200">
                 <a href={`tel:${order.restaurantId?.phone}`} className="flex items-center gap-1 text-blue-600 font-medium text-sm">
@@ -393,11 +414,13 @@ const DeliveryPartnerDashboard = () => {
                   Navigate
                 </button>
               </div>
-              <p className="font-semibold text-gray-900">{order.userId?.name}</p>
+              <p className="font-semibold text-gray-900">{order.userId?.name || 'Customer name not available'}</p>
               <p className="text-sm text-gray-700 mt-1">
-                {order.addressId?.street}
+                {order.addressId?.street || 'Address not available'}
                 {order.addressId?.landmark && `, ${order.addressId.landmark}`}<br />
-                {order.addressId?.city}, {order.addressId?.state} - {order.addressId?.zipCode}
+                {order.addressId?.city && order.addressId?.state && order.addressId?.zipCode
+                  ? `${order.addressId.city}, ${order.addressId.state} - ${order.addressId.zipCode}`
+                  : 'Location details not available'}
               </p>
               {order.deliveryInstructions && (
                 <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded">

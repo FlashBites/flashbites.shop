@@ -10,6 +10,7 @@ import CancellationModal from '../components/common/CancellationModal';
 import LiveTracking from '../components/tracking/LiveTracking';
 import toast from 'react-hot-toast';
 import { io } from 'socket.io-client';
+import { playNotificationSound } from '../utils/notificationSound';
 import {
   MapPinIcon,
   PhoneIcon,
@@ -52,6 +53,40 @@ const OrderDetail = () => {
 
     newSocket.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
+    });
+
+    // Listen for order status updates
+    newSocket.on('order-status-update', (data) => {
+      console.log('📝 Order status updated:', data);
+      if (data.order._id === id) {
+        playNotificationSound('order-update');
+        toast.success(`Your order is now ${ORDER_STATUS_LABELS[data.order.status] || data.order.status}`, {
+          duration: 4000,
+          icon: '📦'
+        });
+        fetchOrderDetails();
+      }
+    });
+
+    // Listen for delivery updates (partner location, ETA, etc.)
+    newSocket.on('delivery-location-update', (data) => {
+      console.log('📍 Delivery location updated:', data);
+      if (data.orderId === id) {
+        playNotificationSound('delivery-update');
+        // Location updates are handled by LiveTracking component
+      }
+    });
+
+    // Listen for order cancellation
+    newSocket.on('order-cancelled', (data) => {
+      console.log('❌ Order cancelled:', data);
+      if (data.order._id === id) {
+        playNotificationSound('alert');
+        toast.error('Your order has been cancelled', {
+          duration: 5000
+        });
+        fetchOrderDetails();
+      }
     });
 
     setSocket(newSocket);

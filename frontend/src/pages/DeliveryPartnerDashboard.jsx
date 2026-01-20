@@ -24,6 +24,7 @@ import {
   TruckIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
+import { playNotificationSound } from '../utils/notificationSound';
 
 const DeliveryPartnerDashboard = () => {
   const navigate = useNavigate();
@@ -78,7 +79,7 @@ const DeliveryPartnerDashboard = () => {
     // Listen for new order notifications
     newSocket.on('new-order-available', (data) => {
       console.log('🆕 New order available:', data);
-      playNotificationSound();
+      playNotificationSound('new-order');
       toast.success(
         <div>
           <strong>New Order Available!</strong>
@@ -95,7 +96,7 @@ const DeliveryPartnerDashboard = () => {
     // Listen for order assignment
     newSocket.on('order-assigned', (data) => {
       console.log('✅ Order assigned:', data);
-      playNotificationSound();
+      playNotificationSound('order-update');
       toast.success(
         <div>
           <strong>Order Assigned!</strong>
@@ -112,7 +113,7 @@ const DeliveryPartnerDashboard = () => {
     // Listen for order cancellation
     newSocket.on('order-cancelled', (data) => {
       console.log('❌ Order cancelled:', data);
-      playNotificationSound();
+      playNotificationSound('alert');
       toast.error(
         <div>
           <strong>Order Cancelled</strong>
@@ -128,6 +129,7 @@ const DeliveryPartnerDashboard = () => {
     // Listen for order status updates
     newSocket.on('order-status-update', (data) => {
       console.log('📝 Order status updated:', data);
+      playNotificationSound('order-update');
       toast.info(`Order #${data.order._id.slice(-8)} is now ${data.order.status}`);
       fetchData(); // Refresh orders
     });
@@ -178,17 +180,6 @@ const DeliveryPartnerDashboard = () => {
       // Silent for other errors - they're already logged in the hook
     }
   }, [locationError]);
-
-  // Play notification sound
-  const playNotificationSound = () => {
-    try {
-      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OmWUwwUUKbj8LZjHAU5j9fxzn0pBSh+zPLaizsKGGS78+mcTwwNTKHh8LplHgU6jtjvz3opBSh+zPLaizsKGGS78+mcTw'); 
-      audio.volume = 0.5;
-      audio.play().catch(err => console.log('Could not play sound:', err));
-    } catch (error) {
-      console.log('Sound playback error:', error);
-    }
-  };
 
   const fetchData = async () => {
     const wasLoading = loading;

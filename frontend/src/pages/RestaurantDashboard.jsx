@@ -82,8 +82,17 @@ const RestaurantDashboard = () => {
     description: '',
     price: '',
     category: '',
+    subCategory: '',
     isVeg: true,
     isAvailable: true,
+    hasVariants: false,
+    variants: []
+  });
+  
+  const [currentVariant, setCurrentVariant] = useState({
+    name: '',
+    price: '',
+    isAvailable: true
   });
 
   useEffect(() => {
@@ -236,15 +245,35 @@ const RestaurantDashboard = () => {
   const handleMenuItemSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Validation for variants
+      if (menuItemData.hasVariants && menuItemData.variants.length === 0) {
+        toast.error('Please add at least one variant');
+        return;
+      }
+
       const formData = new FormData();
       
       // Append menu item data
       formData.append('name', menuItemData.name);
       formData.append('description', menuItemData.description);
-      formData.append('price', menuItemData.price);
       formData.append('category', menuItemData.category);
+      if (menuItemData.subCategory) {
+        formData.append('subCategory', menuItemData.subCategory);
+      }
       formData.append('isVeg', menuItemData.isVeg);
       formData.append('isAvailable', menuItemData.isAvailable);
+      formData.append('hasVariants', menuItemData.hasVariants);
+      
+      // Handle variants or single price
+      if (menuItemData.hasVariants) {
+        formData.append('variants', JSON.stringify(menuItemData.variants));
+        // Set a default price (first variant's price)
+        if (menuItemData.variants.length > 0) {
+          formData.append('price', menuItemData.variants[0].price);
+        }
+      } else {
+        formData.append('price', menuItemData.price);
+      }
       
       // Append image if selected
       if (menuImageFile) {
@@ -269,8 +298,16 @@ const RestaurantDashboard = () => {
         description: '',
         price: '',
         category: '',
+        subCategory: '',
         isVeg: true,
         isAvailable: true,
+        hasVariants: false,
+        variants: []
+      });
+      setCurrentVariant({
+        name: '',
+        price: '',
+        isAvailable: true
       });
       
       // Immediately refresh menu items
@@ -279,6 +316,52 @@ const RestaurantDashboard = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save menu item');
     }
+  };
+
+  // Variant Management Functions
+  const handleAddVariant = () => {
+    if (!currentVariant.name || !currentVariant.price) {
+      toast.error('Please enter variant name and price');
+      return;
+    }
+
+    const newVariant = {
+      name: currentVariant.name,
+      price: parseFloat(currentVariant.price),
+      isAvailable: currentVariant.isAvailable
+    };
+
+    setMenuItemData({
+      ...menuItemData,
+      variants: [...menuItemData.variants, newVariant]
+    });
+
+    // Reset current variant
+    setCurrentVariant({
+      name: '',
+      price: '',
+      isAvailable: true
+    });
+
+    toast.success('Variant added');
+  };
+
+  const handleRemoveVariant = (index) => {
+    const updatedVariants = menuItemData.variants.filter((_, i) => i !== index);
+    setMenuItemData({
+      ...menuItemData,
+      variants: updatedVariants
+    });
+    toast.success('Variant removed');
+  };
+
+  const handleToggleVariants = (enabled) => {
+    setMenuItemData({
+      ...menuItemData,
+      hasVariants: enabled,
+      variants: enabled ? menuItemData.variants : [],
+      price: enabled ? '' : menuItemData.price
+    });
   };
 
   const handleDeleteMenuItem = async (itemId) => {
@@ -1506,22 +1589,68 @@ const RestaurantDashboard = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Price (₹) *
-                    </label>
+                {/* Variants Toggle */}
+                <div className="border-t pt-4">
+                  <label className="flex items-center cursor-pointer">
                     <input
-                      type="number"
-                      required
-                      value={menuItemData.price}
-                      onChange={(e) =>
-                        setMenuItemData({ ...menuItemData, price: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      type="checkbox"
+                      checked={menuItemData.hasVariants}
+                      onChange={(e) => handleToggleVariants(e.target.checked)}
+                      className="mr-3 w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                     />
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">Enable Variants</span>
+                      <p className="text-xs text-gray-500">Add multiple sizes or portions (e.g., Half/Full, Regular/Medium/Large)</p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Price or Variants Section */}
+                {!menuItemData.hasVariants ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Price (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        required={!menuItemData.hasVariants}
+                        value={menuItemData.price}
+                        onChange={(e) =>
+                          setMenuItemData({ ...menuItemData, price: e.target.value })
+                        }
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Category *
+                      </label>
+                      <select
+                        required
+                        value={menuItemData.category}
+                        onChange={(e) =>
+                          setMenuItemData({
+                            ...menuItemData,
+                            category: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      >
+                        <option value="">Select category</option>
+                        <option value="Starters">Starters</option>
+                        <option value="Main Course">Main Course</option>
+                        <option value="Desserts">Desserts</option>
+                        <option value="Beverages">Beverages</option>
+                        <option value="Breads">Breads</option>
+                        <option value="Rice">Rice</option>
+                        <option value="Snacks">Snacks</option>
+                        <option value="Pizza Mania">Pizza Mania</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
+                ) : (
+                  <div className="border rounded-lg p-4 bg-gray-50">
                     <label className="block text-sm font-medium mb-1">
                       Category *
                     </label>
@@ -1534,7 +1663,7 @@ const RestaurantDashboard = () => {
                           category: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
                     >
                       <option value="">Select category</option>
                       <option value="Starters">Starters</option>
@@ -1544,8 +1673,100 @@ const RestaurantDashboard = () => {
                       <option value="Breads">Breads</option>
                       <option value="Rice">Rice</option>
                       <option value="Snacks">Snacks</option>
+                      <option value="Pizza Mania">Pizza Mania</option>
                     </select>
+
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium mb-2 text-orange-600">
+                        Add Variants (e.g., Half/Full or Regular/Medium/Large)
+                      </label>
+                      
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Name (e.g., Half)"
+                            value={currentVariant.name}
+                            onChange={(e) =>
+                              setCurrentVariant({ ...currentVariant, name: e.target.value })
+                            }
+                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="number"
+                            placeholder="Price (₹)"
+                            value={currentVariant.price}
+                            onChange={(e) =>
+                              setCurrentVariant({ ...currentVariant, price: e.target.value })
+                            }
+                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          />
+                        </div>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={handleAddVariant}
+                            className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
+                          >
+                            + Add
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Display Added Variants */}
+                    {menuItemData.variants.length > 0 && (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Added Variants ({menuItemData.variants.length})
+                        </label>
+                        {menuItemData.variants.map((variant, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between bg-white p-3 rounded-lg border"
+                          >
+                            <div className="flex-1">
+                              <span className="font-medium text-gray-900">{variant.name}</span>
+                              <span className="ml-3 text-orange-600 font-semibold">
+                                ₹{variant.price}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveVariant(index)}
+                              className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {menuItemData.variants.length === 0 && (
+                      <p className="text-xs text-gray-500 italic">
+                        No variants added yet. Add at least one variant to continue.
+                      </p>
+                    )}
                   </div>
+                )}
+
+                {/* Sub Category (Optional) */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Sub Category <span className="text-gray-400 text-xs">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., North Indian, Chinese, etc."
+                    value={menuItemData.subCategory}
+                    onChange={(e) =>
+                      setMenuItemData({ ...menuItemData, subCategory: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
                 </div>
 
                 <div className="flex items-center space-x-6">

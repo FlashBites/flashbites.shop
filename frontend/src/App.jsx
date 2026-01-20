@@ -26,6 +26,7 @@ import AdminPanel from './pages/AdminPanel';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
+import TrackOrder from './pages/TrackOrder';
 import Profile from './pages/Profile';
 import About from './pages/About';
 import Partner from './pages/Partner';
@@ -94,6 +95,7 @@ function App() {
               <Route path="/partner" element={<Partner />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/track/:id" element={<TrackOrder />} />
 
               {/* Protected Routes */}
               <Route

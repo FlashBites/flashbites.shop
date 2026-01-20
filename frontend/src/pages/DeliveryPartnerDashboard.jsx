@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -203,7 +203,7 @@ const DeliveryPartnerDashboard = () => {
     }
   };
 
-  const handleAcceptOrder = async (orderId) => {
+  const handleAcceptOrder = useCallback(async (orderId) => {
     setActionLoading(orderId);
     try {
       const response = await acceptOrder(orderId);
@@ -225,7 +225,7 @@ const DeliveryPartnerDashboard = () => {
     } finally {
       setActionLoading(null);
     }
-  };
+  }, []);
 
   const handlePickupOrder = async (orderId) => {
     setActionLoading(orderId);
@@ -288,7 +288,8 @@ const DeliveryPartnerDashboard = () => {
     return timeline;
   };
 
-  const OrderDetailModal = ({ order, onClose }) => {
+  // Memoize the modal component to prevent unnecessary re-renders
+  const OrderDetailModal = React.memo(({ order, onClose }) => {
     if (!order) {
       console.warn('⚠️ Order detail modal opened with no order');
       return null;
@@ -564,7 +565,7 @@ const DeliveryPartnerDashboard = () => {
         </div>
       </div>
     );
-  };
+  });
 
   const OrderCard = ({ order, isAssigned }) => {
     const restaurantLat = order.restaurantId?.location?.coordinates?.[1];

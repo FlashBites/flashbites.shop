@@ -356,12 +356,13 @@ const RestaurantDashboard = () => {
   };
 
   const handleToggleVariants = (enabled) => {
-    setMenuItemData({
-      ...menuItemData,
+    console.log('Toggling variants:', enabled);
+    setMenuItemData(prev => ({
+      ...prev,
       hasVariants: enabled,
-      variants: enabled ? menuItemData.variants : [],
-      price: enabled ? '' : menuItemData.price
-    });
+      variants: enabled ? prev.variants : [],
+      price: enabled ? '' : prev.price
+    }));
   };
 
   const handleDeleteMenuItem = async (itemId) => {
@@ -454,10 +455,13 @@ const RestaurantDashboard = () => {
     setMenuItemData({
       name: item.name,
       description: item.description,
-      price: item.price,
+      price: item.price || '',
       category: item.category,
+      subCategory: item.subCategory || '',
       isVeg: item.isVeg,
       isAvailable: item.isAvailable,
+      hasVariants: item.hasVariants || false,
+      variants: item.variants || []
     });
     setMenuImagePreview(item.image);
     setShowMenuForm(true);
@@ -1645,6 +1649,7 @@ const RestaurantDashboard = () => {
                         <option value="Breads">Breads</option>
                         <option value="Rice">Rice</option>
                         <option value="Snacks">Snacks</option>
+                        <option value="Pizza">Pizza</option>
                         <option value="Pizza Mania">Pizza Mania</option>
                       </select>
                     </div>
@@ -1673,6 +1678,7 @@ const RestaurantDashboard = () => {
                       <option value="Breads">Breads</option>
                       <option value="Rice">Rice</option>
                       <option value="Snacks">Snacks</option>
+                      <option value="Pizza">Pizza</option>
                       <option value="Pizza Mania">Pizza Mania</option>
                     </select>
 

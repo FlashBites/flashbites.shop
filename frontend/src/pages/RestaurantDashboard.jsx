@@ -190,7 +190,7 @@ const RestaurantDashboard = () => {
     };
 
     socketService.onNewOrder(handleNewOrder);
-    socketService.on('order-update', handleOrderUpdate);
+    socketService.onOrderUpdate(handleOrderUpdate);
 
     // Cleanup
     return () => {

@@ -113,44 +113,46 @@ const Navbar = () => {
                   )}
                 </button>
 
-                {/* Profile Dropdown - Fixed click issue */}
-                <div 
-                  className="relative"
-                  onMouseEnter={() => setShowDropdown(true)}
-                  onMouseLeave={() => setShowDropdown(false)}
-                >
+                {/* Profile Dropdown */}
+                <div className="relative">
                   <button 
                     onClick={() => setShowDropdown(!showDropdown)}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-all duration-300 bg-gray-50 hover:bg-primary-50 px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-primary-400"
+                    className="relative z-10 flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-all duration-300 bg-gray-50 hover:bg-primary-50 px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-primary-400"
                   >
                     <UserCircleIcon className="h-5 w-5" />
                     <span className="hidden xl:block font-medium">{user?.name}</span>
                   </button>
                   
                   {showDropdown && isAuthenticated && (
-                    <div className="absolute right-0 mt-2 w-48 z-50 animate-slide-down"
-                      onMouseEnter={() => setShowDropdown(true)}
-                      onMouseLeave={() => setShowDropdown(false)}
-                    >
-                      <div className="bg-white rounded-xl shadow-2xl py-2 border-2 border-gray-200 overflow-hidden">
-                        <Link
-                          to="/profile"
-                          className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-accent-50 hover:text-primary-600 transition-all font-medium"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          Profile
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setShowDropdown(false);
-                            handleLogout();
-                          }}
-                          className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-accent-50 hover:text-accent-600 transition-all font-medium"
-                        >
-                          Logout
-                        </button>
+                    <>
+                      {/* Backdrop to close dropdown when clicking outside */}
+                      <div 
+                        className="fixed inset-0 z-30" 
+                        onClick={() => setShowDropdown(false)}
+                      />
+                      
+                      {/* Dropdown menu */}
+                      <div className="absolute right-0 mt-2 w-48 z-40 animate-slide-down">
+                        <div className="bg-white rounded-xl shadow-2xl py-2 border-2 border-gray-200 overflow-hidden">
+                          <Link
+                            to="/profile"
+                            className="block px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-primary-50 hover:to-accent-50 hover:text-primary-600 transition-all font-medium"
+                            onClick={() => setShowDropdown(false)}
+                          >
+                            Profile
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setShowDropdown(false);
+                              handleLogout();
+                            }}
+                            className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-accent-50 hover:text-accent-600 transition-all font-medium"
+                          >
+                            Logout
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
               </>

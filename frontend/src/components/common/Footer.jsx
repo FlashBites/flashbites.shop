@@ -3,15 +3,15 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 text-gray-300 border-t border-dark-800">
+    <footer className="bg-gradient-to-br from-gray-50 via-white to-orange-50 text-gray-600 border-t-2 border-primary-100 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-white text-xl md:text-2xl font-bold bg-gradient-to-r from-primary-400 to-accent-500 bg-clip-text text-transparent">
+            <h3 className="text-gray-900 text-xl md:text-2xl font-bold bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 bg-clip-text text-transparent">
               FlashBites
             </h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <p className="text-sm text-gray-600 leading-relaxed">
               Your favorite food delivered fast. Order from the best restaurants in town with lightning speed! 🍕⚡
             </p>
             <div className="flex gap-4">
@@ -19,7 +19,7 @@ const Footer = () => {
                 href="https://www.linkedin.com/company/flash-bites/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-primary-400 transition-all duration-300 transform hover:scale-110 bg-dark-800 hover:bg-dark-700 p-2 rounded-lg"
+                className="text-gray-600 hover:text-primary-600 transition-all duration-300 transform hover:scale-110 bg-white hover:bg-primary-50 p-2 rounded-lg border-2 border-gray-200 hover:border-primary-400 shadow-sm"
                 aria-label="LinkedIn"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@ const Footer = () => {
                 href="https://www.instagram.com/flashbites.shop/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-primary-400 transition-all duration-300 transform hover:scale-110 bg-dark-800 hover:bg-dark-700 p-2 rounded-lg"
+                className="text-gray-600 hover:text-primary-600 transition-all duration-300 transform hover:scale-110 bg-white hover:bg-primary-50 p-2 rounded-lg border-2 border-gray-200 hover:border-primary-400 shadow-sm"
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -42,32 +42,32 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold text-lg">Quick Links</h4>
+            <h4 className="text-gray-900 font-bold text-lg">Quick Links</h4>
             <ul className="space-y-3">
               <li>
                 <Link 
                   to="/restaurants" 
-                  className="text-gray-400 hover:text-primary-400 transition-all duration-300 flex items-center group"
+                  className="text-gray-600 hover:text-primary-600 transition-all duration-300 flex items-center group"
                 >
-                  <span className="mr-2 text-primary-500 group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="mr-2 text-primary-600 group-hover:translate-x-1 transition-transform">→</span>
                   Restaurants
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/about" 
-                  className="text-gray-400 hover:text-primary-400 transition-all duration-300 flex items-center group"
+                  className="text-gray-600 hover:text-primary-600 transition-all duration-300 flex items-center group"
                 >
-                  <span className="mr-2 text-primary-500 group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="mr-2 text-primary-600 group-hover:translate-x-1 transition-transform">→</span>
                   About Us
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/contact" 
-                  className="text-gray-400 hover:text-primary-400 transition-all duration-300 flex items-center group"
+                  className="text-gray-600 hover:text-primary-600 transition-all duration-300 flex items-center group"
                 >
-                  <span className="mr-2 text-primary-500 group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="mr-2 text-primary-600 group-hover:translate-x-1 transition-transform">→</span>
                   Contact
                 </Link>
               </li>
@@ -76,23 +76,23 @@ const Footer = () => {
 
           {/* For Partners */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold text-lg">For Partners</h4>
+            <h4 className="text-gray-900 font-bold text-lg">For Partners</h4>
             <ul className="space-y-3">
               <li>
                 <Link 
                   to="/partner" 
-                  className="text-gray-400 hover:text-primary-400 transition-all duration-300 flex items-center group"
+                  className="text-gray-600 hover:text-primary-600 transition-all duration-300 flex items-center group"
                 >
-                  <span className="mr-2 text-primary-500 group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="mr-2 text-primary-600 group-hover:translate-x-1 transition-transform">→</span>
                   Partner with us
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/login" 
-                  className="text-gray-400 hover:text-primary-400 transition-all duration-300 flex items-center group"
+                  className="text-gray-600 hover:text-primary-600 transition-all duration-300 flex items-center group"
                 >
-                  <span className="mr-2 text-primary-500 group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="mr-2 text-primary-600 group-hover:translate-x-1 transition-transform">→</span>
                   Restaurant Login
                 </Link>
               </li>
@@ -101,23 +101,23 @@ const Footer = () => {
 
           {/* Legal */}
           <div className="space-y-4">
-            <h4 className="text-white font-bold text-lg">Legal</h4>
+            <h4 className="text-gray-900 font-bold text-lg">Legal</h4>
             <ul className="space-y-3">
               <li>
                 <Link 
                   to="/terms" 
-                  className="text-gray-400 hover:text-primary-400 transition-all duration-300 flex items-center group"
+                  className="text-gray-600 hover:text-primary-600 transition-all duration-300 flex items-center group"
                 >
-                  <span className="mr-2 text-primary-500 group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="mr-2 text-primary-600 group-hover:translate-x-1 transition-transform">→</span>
                   Terms & Conditions
                 </Link>
               </li>
               <li>
                 <Link 
                   to="/privacy" 
-                  className="text-gray-400 hover:text-primary-400 transition-all duration-300 flex items-center group"
+                  className="text-gray-600 hover:text-primary-600 transition-all duration-300 flex items-center group"
                 >
-                  <span className="mr-2 text-primary-500 group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="mr-2 text-primary-600 group-hover:translate-x-1 transition-transform">→</span>
                   Privacy Policy
                 </Link>
               </li>
@@ -126,9 +126,9 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="mt-12 pt-8 border-t border-dark-800">
+        <div className="mt-12 pt-8 border-t-2 border-gray-200">
           <div className="text-center space-y-2">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-600">
               &copy; {new Date().getFullYear()} FlashBites. All rights reserved.
             </p>
             <p className="text-xs text-gray-500">

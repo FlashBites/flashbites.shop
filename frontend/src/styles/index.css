@@ -42,7 +42,7 @@
   }
   
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-900 font-semibold py-3 px-6 rounded-xl transition-all duration-300 border-2 border-gray-200 hover:border-primary-400 shadow-md hover:shadow-lg;
+    @apply bg-gray-100 hover:bg-white text-gray-900 font-semibold py-3 px-6 rounded-xl transition-all duration-300 border-2 border-gray-300 hover:border-primary-400 shadow-md hover:shadow-lg;
   }
   
   .btn-outline {
@@ -54,15 +54,15 @@
   }
   
   .input-field {
-    @apply w-full px-4 py-3 border-2 border-gray-300 bg-white text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 placeholder-gray-400 shadow-sm;
+    @apply w-full px-4 py-3 border-2 border-gray-300 bg-gray-50 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-all duration-200 placeholder-gray-400 shadow-sm;
   }
   
   .card {
-    @apply bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden;
+    @apply bg-gray-50 rounded-2xl shadow-lg hover:shadow-2xl hover:bg-white transition-all duration-300 border border-gray-300 overflow-hidden;
   }
   
   .card-light {
-    @apply bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200;
+    @apply bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-300;
   }
   
   .badge {
@@ -96,12 +96,12 @@
   
   /* Glass morphism */
   .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-gray-200/50 shadow-lg;
+    @apply bg-gray-100/90 backdrop-blur-xl border border-gray-300/50 shadow-lg;
   }
   
   /* Hero section */
   .hero-gradient {
-    @apply bg-gradient-to-br from-orange-50 via-white to-red-50;
+    @apply bg-gradient-to-br from-orange-100 via-gray-50 to-red-100;
   }
 }
 
@@ -126,7 +126,7 @@
 
 .skeleton {
   animation: shimmer 2s infinite;
-  background: linear-gradient(to right, #f3f4f6 4%, #e5e7eb 25%, #f3f4f6 36%);
+  background: linear-gradient(to right, #e5e7eb 4%, #d1d5db 25%, #e5e7eb 36%);
   background-size: 1000px 100%;
 }
 
@@ -141,7 +141,7 @@ html {
 
 /* Base styles */
 body {
-  @apply bg-gradient-to-br from-gray-50 via-white to-orange-50 text-gray-900 font-sans antialiased;
+  @apply bg-gradient-to-br from-gray-100 via-gray-50 to-orange-100 text-gray-900 font-sans antialiased;
 }
 
 /* Selection color */

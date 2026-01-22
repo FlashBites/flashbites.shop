@@ -301,6 +301,9 @@ const DeliveryPartnerDashboard = () => {
 
   // Memoize the modal component to prevent unnecessary re-renders
   const OrderDetailModal = React.memo(({ order, onClose }) => {
+    const [localOtp, setLocalOtp] = useState('');
+    const modalContentRef = useRef(null);
+    
     if (!order) {
       console.warn('⚠️ Order detail modal opened with no order');
       return null;
@@ -565,16 +568,20 @@ const DeliveryPartnerDashboard = () => {
                       type="text"
                       inputMode="numeric"
                       maxLength="4"
-                      value={deliveryOtp}
-                      onChange={(e) => setDeliveryOtp(e.target.value.replace(/\D/g, ''))}
+                      value={localOtp}
+                      onChange={(e) => setLocalOtp(e.target.value.replace(/\D/g, ''))}
                       placeholder="1234"
                       className="w-full px-4 py-2 sm:py-3 border-2 border-gray-300 rounded-lg text-center text-xl sm:text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-green-500"
+                      autoComplete="off"
                     />
                     <p className="text-xs text-gray-500 mt-1">Ask the customer for their delivery OTP</p>
                   </div>
                   <button
-                    onClick={() => handleMarkDelivered(order._id)}
-                    disabled={actionLoading === order._id || !deliveryOtp || deliveryOtp.length !== 4}
+                    onClick={() => {
+                      setDeliveryOtp(localOtp);
+                      handleMarkDelivered(order._id);
+                    }}
+                    disabled={actionLoading === order._id || !localOtp || localOtp.length !== 4}
                     className="w-full bg-green-600 text-white py-3 sm:py-4 px-4 rounded-lg font-semibold text-sm sm:text-base hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5" />

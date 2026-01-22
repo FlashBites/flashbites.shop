@@ -5,6 +5,7 @@ const {
   sendOutForDeliverySMS,
   sendOrderDeliveredSMS
 } = require('../utils/smsService');
+const { sendEmail } = require('../utils/emailService');
 const { 
   notifyUserDeliveryAssigned,
   notifyDeliveryPartnerAssignment
@@ -223,6 +224,43 @@ exports.markAsDelivered = async (req, res) => {
       }
     } catch (smsError) {
       console.error('Failed to send delivery SMS:', smsError);
+    }
+
+    // Send email notification for delivered order
+    try {
+      if (updatedOrder.userId && updatedOrder.userId.email) {
+        await sendEmail({
+          to: updatedOrder.userId.email,
+          subject: '🎉 Your Order Has Been Delivered!',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #f97316;">Order Delivered Successfully! 🎉</h2>
+              <p>Dear ${updatedOrder.userId.name},</p>
+              <p>Great news! Your order has been delivered successfully.</p>
+              
+              <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">Order Details:</h3>
+                <p><strong>Order ID:</strong> #${updatedOrder._id.toString().slice(-8)}</p>
+                <p><strong>Restaurant:</strong> ${updatedOrder.restaurantId?.name}</p>
+                <p><strong>Total Amount:</strong> ₹${updatedOrder.total}</p>
+                <p><strong>Delivered At:</strong> ${new Date(updatedOrder.deliveredAt).toLocaleString('en-IN')}</p>
+              </div>
+              
+              <p>We hope you enjoyed your meal! 🍕</p>
+              <p>Thank you for ordering with FlashBites.</p>
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                <p style="color: #6b7280; font-size: 12px;">
+                  If you have any questions or concerns, please contact our support team.
+                </p>
+              </div>
+            </div>
+          `
+        });
+        console.log(`📧 Order delivered email sent to ${updatedOrder.userId.email}`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send delivery email:', emailError);
     }
 
     return successResponse(res, 200, 'Order marked as delivered successfully', { order: updatedOrder });

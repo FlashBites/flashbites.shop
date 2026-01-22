@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import { getCurrentUser } from './redux/slices/authSlice';
 import { useNotifications } from './hooks/useNotifications';
 
-// Layout Components
+// Layout Components (not lazy loaded for critical rendering)
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import CartDrawer from './components/cart/CartDrawer';
@@ -13,27 +13,37 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ScrollToTop from './components/common/ScrollToTop';
 
-// Pages
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import RestaurantPage from './pages/RestaurantPage';
-import RestaurantDetail from './pages/RestaurantDetail';
-import RestaurantDashboard from './pages/RestaurantDashboard';
-import DeliveryPartnerDashboard from './pages/DeliveryPartnerDashboard';
-import AdminPanel from './pages/AdminPanel';
-import Checkout from './pages/Checkout';
-import Orders from './pages/Orders';
-import OrderDetail from './pages/OrderDetail';
-import TrackOrder from './pages/TrackOrder';
-import Profile from './pages/Profile';
-import About from './pages/About';
-import Partner from './pages/Partner';
-import TermsPage from './pages/TermsPage';
-import PrivacyPage from './pages/PrivacyPage';
-import NotificationsPage from './pages/NotificationsPage';
-import NotFound from './pages/NotFound';
+// Loading Component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-orange-600 mx-auto"></div>
+      <p className="mt-4 text-gray-600 font-medium">Loading...</p>
+    </div>
+  </div>
+);
+
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const RestaurantPage = lazy(() => import('./pages/RestaurantPage'));
+const RestaurantDetail = lazy(() => import('./pages/RestaurantDetail'));
+const RestaurantDashboard = lazy(() => import('./pages/RestaurantDashboard'));
+const DeliveryPartnerDashboard = lazy(() => import('./pages/DeliveryPartnerDashboard'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const Orders = lazy(() => import('./pages/Orders'));
+const OrderDetail = lazy(() => import('./pages/OrderDetail'));
+const TrackOrder = lazy(() => import('./pages/TrackOrder'));
+const Profile = lazy(() => import('./pages/Profile'));
+const About = lazy(() => import('./pages/About'));
+const Partner = lazy(() => import('./pages/Partner'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Google OAuth Success Handler
 const GoogleAuthSuccess = () => {
@@ -82,7 +92,8 @@ function App() {
           <Navbar />
           
           <main className="flex-1">
-            <Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -166,6 +177,7 @@ function App() {
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </main>
 
           <Footer />

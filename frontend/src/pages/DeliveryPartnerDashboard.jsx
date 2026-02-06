@@ -27,7 +27,6 @@ import {
 import { playNotificationSound } from '../utils/notificationSound';
 import NotificationPanel from '../components/notifications/NotificationPanel';
 import { StatsCardSkeleton, CardSkeleton, PageLoader } from '../components/common/LoadingSkeleton';
-import { StatsCardSkeleton, CardSkeleton, PageLoader } from '../components/common/LoadingSkeleton';
 
 const DeliveryPartnerDashboard = () => {
   const navigate = useNavigate();
@@ -849,6 +848,7 @@ const DeliveryPartnerDashboard = () => {
                   )}
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>

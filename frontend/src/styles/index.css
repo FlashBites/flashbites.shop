@@ -66,7 +66,12 @@
   }
   
   .btn-outline {
-    @apply border-2 border-[#E23744] text-[#E23744] hover:bg-flash-gradient hover:text-white font-semibold py-3 px-6 rounded-button text-base transition-all duration-300 transform hover:scale-[1.02];
+    @apply border-2 border-[#E23744] text-[#E23744] font-semibold py-3 px-6 rounded-button text-base transition-all duration-300 transform hover:scale-[1.02];
+  }
+  
+  .btn-outline:hover {
+    background: linear-gradient(135deg, #E23744 0%, #FF7A18 100%);
+    @apply text-white border-transparent;
   }
   
   .btn-ghost {
@@ -75,16 +80,29 @@
   
   /* Input Fields - Rural Friendly (larger, clear) */
   .input-field {
-    @apply w-full px-4 py-3 border-2 border-[#EAEAEA] bg-white text-[#1C1C1C] rounded-button text-base focus:outline-none focus:ring-2 focus:ring-[#FF7A18] focus:border-[#FF7A18] transition-all duration-200 placeholder-gray-400 shadow-sm;
+    @apply w-full px-4 py-3 border-2 border-[#EAEAEA] bg-white text-[#1C1C1C] text-base focus:outline-none focus:ring-2 focus:ring-[#FF7A18] focus:border-[#FF7A18] transition-all duration-200 placeholder-gray-400 shadow-sm;
+    border-radius: 14px;
   }
   
   /* Card Styles - 16px rounded, white bg, soft shadow */
   .card {
-    @apply bg-white rounded-card shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden;
+    @apply bg-white overflow-hidden transition-all duration-300;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   }
   
   .card-light {
-    @apply bg-[#F6F6F6] rounded-card shadow-card hover:shadow-card-hover transition-all duration-300;
+    @apply bg-[#F6F6F6] transition-all duration-300;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .card-light:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   }
   
   /* Status Badges - Clear & Visible */

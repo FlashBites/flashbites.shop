@@ -786,7 +786,7 @@ const DeliveryPartnerDashboard = () => {
               )}
               
               {/* Auto-Refresh Toggle */}
-              <div className="bg-white rounded-lg shadow p-4 flex-1 sm:flex-none">
+              <div className="flex-1 sm:flex-none">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <ArrowPathIcon className={`h-5 w-5 ${autoRefreshEnabled ? 'text-green-600 animate-spin' : 'text-gray-400'}`} />
@@ -811,7 +811,7 @@ const DeliveryPartnerDashboard = () => {
               </div>
 
               {/* Location Tracking Status */}
-              <div className="bg-white rounded-lg shadow p-4 flex-1 sm:flex-none sm:min-w-[200px]">
+              <div className="flex-1 sm:flex-none sm:min-w-[200px]">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <span className="text-sm font-semibold text-gray-700">GPS Tracking</span>
                   <label className="relative inline-flex items-center cursor-pointer">

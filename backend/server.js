@@ -105,7 +105,15 @@ const corsOptions = {
       }
     }
   },
-  credentials: true,
+  credentials: function(req, callback) {
+    // Disable credentials for Capacitor apps
+    const origin = req.headers.origin;
+    if (origin && (origin.startsWith('capacitor://') || origin.startsWith('ionic://'))) {
+      callback(null, false);
+    } else {
+      callback(null, true);
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],

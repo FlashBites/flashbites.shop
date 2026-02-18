@@ -2,8 +2,13 @@ import axios from 'axios';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-// Log the API URL in production to help debug
+// Detect if running in Capacitor
+const isCapacitor = window.Capacitor !== undefined;
+
+// Log the API URL and environment
 console.log('🔗 API Base URL:', apiUrl);
+console.log('📱 Running in Capacitor:', isCapacitor);
+console.log('🌍 Environment:', import.meta.env.MODE);
 
 const instance = axios.create({
   baseURL: apiUrl,
@@ -11,7 +16,7 @@ const instance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Enable cookies for CORS
+  withCredentials: !isCapacitor, // Disable withCredentials for Capacitor apps
 });
 
 // Request interceptor for adding auth token

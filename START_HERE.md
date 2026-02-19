@@ -162,7 +162,7 @@ FRONTEND_URL=<your-vercel-url>
 ```env
 VITE_API_URL=https://your-backend.railway.app/api
 VITE_RAZORPAY_KEY_ID=rzp_live_xxxxx
-VITE_GOOGLE_MAPS_API_KEY=AIzaSyCIWqbK9FObIwSz1vt5Q2Gpm9BZ4XDKIZ4
+VITE_GOOGLE_MAPS_API_KEY=
 ```
 
 ---

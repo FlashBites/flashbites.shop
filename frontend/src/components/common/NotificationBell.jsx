@@ -39,9 +39,9 @@ const NotificationBell = () => {
           ></div>
 
           {/* Menu Content */}
-          <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-20">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
+          <div className="absolute right-0 sm:-right-2 mt-2 w-[calc(100vw-2rem)] max-w-[320px] sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform origin-top-right transition-all">
+            <div className="p-4 border-b border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900">Notifications</h3>
             </div>
 
             <div className="p-4 space-y-3">
@@ -71,7 +71,7 @@ const NotificationBell = () => {
                     toggleSound();
                   }}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    soundEnabled ? 'bg-primary-500' : 'bg-gray-300'
+                    soundEnabled ? 'bg-[#96092B]' : 'bg-gray-300'
                   }`}
                 >
                   <span
@@ -84,8 +84,8 @@ const NotificationBell = () => {
 
               {/* Browser Notification */}
               {notificationPermission !== 'granted' && (
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-xs text-blue-800 mb-2">
+                <div className="p-3 bg-[#fcf0f3] rounded-lg border border-[#fcf0f3]">
+                  <p className="text-xs text-[#96092B] font-medium mb-2">
                     Enable browser notifications for alerts even when tab is inactive
                   </p>
                   {notificationPermission === 'default' && (
@@ -94,13 +94,13 @@ const NotificationBell = () => {
                         e.stopPropagation();
                         requestNotificationPermission();
                       }}
-                      className="w-full px-3 py-1.5 bg-blue-500 text-white rounded text-xs font-medium hover:bg-blue-600 transition"
+                      className="w-full px-3 py-2 bg-[#96092B] text-white rounded-lg text-xs font-semibold hover:bg-[#B30B33] transition-colors shadow-sm"
                     >
                       Enable Notifications
                     </button>
                   )}
                   {notificationPermission === 'denied' && (
-                    <p className="text-xs text-red-600">
+                    <p className="text-xs text-red-600 font-semibold">
                       Blocked. Enable in browser settings.
                     </p>
                   )}
@@ -108,8 +108,9 @@ const NotificationBell = () => {
               )}
 
               {/* Info */}
-              <div className="pt-2 border-t border-gray-200">
-                <p className="text-xs text-gray-500 text-center mb-2">
+              <div className="pt-2 border-t border-gray-100">
+                <p className="text-xs text-gray-500 text-center mb-3">
+
                   You'll receive real-time alerts for new orders and updates
                 </p>
                 
@@ -130,7 +131,7 @@ const NotificationBell = () => {
                       });
                     }
                   }}
-                  className="w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-medium transition"
+                  className="w-full px-3 py-2.5 bg-[#fcf0f3] hover:bg-[#96092B] hover:text-white text-[#96092B] rounded-lg text-xs font-bold transition-colors duration-200"
                 >
                   🧪 Test Notification & Sound
                 </button>

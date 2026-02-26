@@ -12,7 +12,7 @@ console.log('📱 Running in Capacitor:', isCapacitor);
 console.log('🌍 Environment:', import.meta.env.MODE);
 
 const instance = axios.create({
-  baseURL: apiUrl,
+  baseURL: apiUrl, // This must be http://localhost:8080/api
   timeout: 30000, // Increased to 30 seconds for slower connections
   headers: {
     'Content-Type': 'application/json',

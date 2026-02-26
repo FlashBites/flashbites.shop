@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authApi from '../../api/authApi';
 import { Preferences } from '@capacitor/preferences';
+import axios from '../../api/axios';
 
 // Thunks
 export const login = createAsyncThunk(
@@ -12,8 +13,10 @@ export const login = createAsyncThunk(
       // Store tokens in Preferences
       if (apiResponse.success && apiResponse.data) {
         await Preferences.set({ key: 'token', value: apiResponse.data.accessToken });
+        await Preferences.set({ key: 'accessToken', value: apiResponse.data.accessToken });
         await Preferences.set({ key: 'refreshToken', value: apiResponse.data.refreshToken });
         localStorage.setItem('token', apiResponse.data.accessToken);
+        localStorage.setItem('accessToken', apiResponse.data.accessToken);
         localStorage.setItem('refreshToken', apiResponse.data.refreshToken);
       }
       // Return the nested data object which contains user, accessToken, refreshToken
@@ -33,8 +36,10 @@ export const register = createAsyncThunk(
       // Store tokens in Preferences
       if (apiResponse.success && apiResponse.data) {
         await Preferences.set({ key: 'token', value: apiResponse.data.accessToken });
+        await Preferences.set({ key: 'accessToken', value: apiResponse.data.accessToken });
         await Preferences.set({ key: 'refreshToken', value: apiResponse.data.refreshToken });
         localStorage.setItem('token', apiResponse.data.accessToken);
+        localStorage.setItem('accessToken', apiResponse.data.accessToken);
         localStorage.setItem('refreshToken', apiResponse.data.refreshToken);
       }
       // Return the nested data object which contains user, accessToken, refreshToken
@@ -49,35 +54,41 @@ export const getCurrentUser = createAsyncThunk(
   'auth/getCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await authApi.getCurrentUser();
+      const response = await axios.get('/auth/me');
       return response.data;
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch user';
-      return rejectWithValue(errorMsg);
+      // Don't logout on 401, let the axios interceptor handle it
+      return rejectWithValue(error.response?.data);
     }
   }
 );
 
+const initialState = {
+  user: null,
+  token: localStorage.getItem('accessToken') || localStorage.getItem('token') || null,
+  refreshToken: localStorage.getItem('refreshToken') || null,
+  isAuthenticated: !!(localStorage.getItem('accessToken') || localStorage.getItem('token')),
+  loading: false,
+  error: null,
+};
+
 const authSlice = createSlice({
   name: 'auth',
-  initialState: {
-    user: null,
-    token: localStorage.getItem('token') || localStorage.getItem('accessToken'),
-    isAuthenticated: !!(localStorage.getItem('token') || localStorage.getItem('accessToken')),
-    loading: false,
-    error: null,
-  },
+  initialState,
   reducers: {
+    setCredentials: (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.refreshToken = action.payload.refreshToken;
+      state.isAuthenticated = true;
+      localStorage.setItem('accessToken', action.payload.token);
+      localStorage.setItem('refreshToken', action.payload.refreshToken);
+    },
     logout: (state) => {
       state.user = null;
       state.token = null;
+      state.refreshToken = null;
       state.isAuthenticated = false;
-      // Clear tokens from Preferences
-      Preferences.remove({ key: 'token' });
-      Preferences.remove({ key: 'accessToken' });
-      Preferences.remove({ key: 'refreshToken' });
-      
-      // Clear tokens from synchronous Web Storage
       localStorage.removeItem('token');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -126,18 +137,16 @@ const authSlice = createSlice({
       })
       // Get current user
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.user = action.payload.user;
+        state.user = action.payload?.data?.user || action.payload?.user || null;
+        state.loading = false;
+        state.isAuthenticated = true;
       })
-      .addCase(getCurrentUser.rejected, (state, action) => {
-        // Silently fail if user fetch fails - they're still logged in
-        // Only log in development
-        if (import.meta.env.DEV) {
-          console.warn('Failed to fetch current user:', action.payload || action.error?.message);
-        }
-        // Don't clear auth state - user is still logged in, just couldn't fetch updated data
+      .addCase(getCurrentUser.rejected, (state) => {
+        state.loading = false;
+        // Don't set isAuthenticated to false here
       });
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, setCredentials } = authSlice.actions;
 export default authSlice.reducer;

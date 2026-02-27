@@ -37,6 +37,9 @@ import NotificationsPage from './pages/NotificationsPage';
 import HelpPage from './pages/HelpPage';
 import Settings from './pages/Settings';
 import Addresses from './pages/Addresses';
+import PaymentMethods from './pages/PaymentMethods';
+import Promos from './pages/Promos';
+import TrackOrder from './pages/TrackOrder';
 import NotFound from './pages/NotFound';
 
 // Google OAuth Success Handler
@@ -114,9 +117,14 @@ function AppContent() {
     }
   }, [dispatch]);
 
-  // Hide navbar/footer only on auth pages
-  const isAuthPage = ['/login', '/register', '/forgot-password', '/profile', '/settings', '/addresses'].includes(location.pathname);
-  const isProfilePage = ['/profile', '/settings', '/addresses'].includes(location.pathname);
+  const normalizedPath = location.pathname !== '/' && location.pathname.endsWith('/')
+    ? location.pathname.slice(0, -1)
+    : location.pathname;
+
+  const isTrackOrderPage = /^\/orders\/[^/]+\/track$/.test(location.pathname);
+  // Hide global navbar/footer on auth and app-like mobile pages
+  const isAuthPage = ['/login', '/register', '/forgot-password', '/profile', '/settings', '/addresses', '/payment-methods', '/promos', '/help', '/privacy', '/terms', '/partner'].includes(normalizedPath) || isTrackOrderPage;
+  const isProfilePage = ['/profile', '/settings', '/addresses', '/payment-methods', '/promos', '/help', '/privacy', '/terms', '/partner'].includes(normalizedPath) || isTrackOrderPage;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -163,6 +171,14 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/orders/:id/track"
+            element={
+              <ProtectedRoute>
+                <TrackOrder />
+              </ProtectedRoute>
+            }
+          />
           {/* Profile is now protected again */}
           <Route
             path="/profile"
@@ -193,6 +209,22 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <Addresses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment-methods"
+            element={
+              <ProtectedRoute>
+                <PaymentMethods />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/promos"
+            element={
+              <ProtectedRoute>
+                <Promos />
               </ProtectedRoute>
             }
           />

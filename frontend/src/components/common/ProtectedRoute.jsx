@@ -1,17 +1,24 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { FullPageLoader } from './Loader';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated, loading, user } = useSelector((state) => state.auth);
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
 
+  // Show loading state while checking authentication
   if (loading) {
-    return <FullPageLoader />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      </div>
+    );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  // Check both Redux state and localStorage token
+  if (!isAuthenticated && !token) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {

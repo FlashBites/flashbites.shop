@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchRestaurants, setFilters } from '../redux/slices/restaurantSlice';
+import { addToCart } from '../redux/slices/cartSlice';
 import RestaurantCard from '../components/restaurant/RestaurantCard';
 import { Loader } from '../components/common/Loader';
 import { CUISINES } from '../utils/constants';
 import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 const CUISINE_TABS = [
   { id: 'All',           label: 'All',       emoji: '🍽️' },
@@ -28,10 +30,28 @@ const BRAND = '#96092B';
 
 const RestaurantPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { restaurants, loading, filters } = useSelector((s) => s.restaurant);
   const [selectedCuisine, setSelectedCuisine] = useState('All');
   const [activeSort, setActiveSort] = useState(null);
   const routerLocation = useLocation();
+
+  const demoRestaurant = {
+    _id: 'demo-restaurant',
+    name: 'Demo Kitchen',
+    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=300&q=80',
+    acceptingOrders: true,
+  };
+
+  const demoItem = {
+    _id: 'demo-item-zinger',
+    name: 'Spicy Zinger Burger',
+    description: 'Frontend demo item for checkout flow',
+    price: 12.99,
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80',
+    isVeg: false,
+    isAvailable: true,
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(routerLocation.search);
@@ -49,6 +69,12 @@ const RestaurantPage = () => {
   const handleCuisine = (label) => {
     setSelectedCuisine(label);
     dispatch(setFilters({ cuisine: label === 'All' ? null : label }));
+  };
+
+  const addDemoToCart = (goCheckout = false) => {
+    dispatch(addToCart({ item: demoItem, restaurant: demoRestaurant }));
+    toast.success('Demo item added to cart');
+    if (goCheckout) navigate('/checkout');
   };
 
   return (
@@ -117,10 +143,36 @@ const RestaurantPage = () => {
           <h1 className="text-xl font-bold text-gray-900">Restaurants near you</h1>
           {!loading && (
             <p className="text-sm text-gray-400 mt-0.5">
-              {restaurants.length} restaurants{selectedCuisine !== 'All' ? ` · ${selectedCuisine}` : ''}
+              {restaurants.length + 1} restaurants{selectedCuisine !== 'All' ? ` · ${selectedCuisine}` : ''}
             </p>
           )}
         </div>
+
+        {!loading && (
+          <div className="mb-5 rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 to-white p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-orange-500">Frontend Demo</p>
+                <h3 className="text-lg font-bold text-slate-900">Demo Restaurant</h3>
+                <p className="text-sm text-slate-500">Use this to test cart, checkout, status and track pages without backend seed data.</p>
+              </div>
+              <div className="shrink-0 flex flex-col gap-2">
+                <button
+                  onClick={() => addDemoToCart(false)}
+                  className="h-10 px-4 rounded-xl border border-orange-300 text-orange-600 bg-white text-sm font-semibold"
+                >
+                  Add Demo Item
+                </button>
+                <button
+                  onClick={() => addDemoToCart(true)}
+                  className="h-10 px-4 rounded-xl bg-orange-500 text-white text-sm font-semibold"
+                >
+                  Checkout Demo
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <Loader />

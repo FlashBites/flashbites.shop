@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import { Capacitor } from '@capacitor/core';
@@ -35,6 +35,12 @@ import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import NotificationsPage from './pages/NotificationsPage';
 import HelpPage from './pages/HelpPage';
+import Settings from './pages/Settings';
+import Addresses from './pages/Addresses';
+import PaymentMethods from './pages/PaymentMethods';
+import Promos from './pages/Promos';
+import TrackOrder from './pages/TrackOrder';
+import OrderStatus from './pages/OrderStatus';
 import NotFound from './pages/NotFound';
 
 // Google OAuth Success Handler
@@ -69,9 +75,10 @@ const GoogleAuthSuccess = () => {
   );
 };
 
-function App() {
+function AppContent() {
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, token } = useSelector((state) => state.auth);
+  const location = useLocation();
   
   // Initialize notification system
   useNotifications();
@@ -104,111 +111,180 @@ function App() {
   }, [isNative]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Check if we have a token and fetch current user
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+    if (token) {
       dispatch(getCurrentUser());
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch]);
 
+  const normalizedPath = location.pathname !== '/' && location.pathname.endsWith('/')
+    ? location.pathname.slice(0, -1)
+    : location.pathname;
+
+  const isTrackOrderPage = /^\/orders\/[^/]+\/track$/.test(location.pathname);
+  const isOrderStatusPage = /^\/orders\/[^/]+\/status$/.test(location.pathname);
+  const isOrderDetailPage = /^\/orders\/[^/]+$/.test(location.pathname);
+  // Hide global navbar/footer on auth and app-like mobile pages
+  const isAuthPage = ['/login', '/register', '/forgot-password', '/checkout', '/profile', '/settings', '/addresses', '/payment-methods', '/promos', '/help', '/privacy', '/terms', '/partner', '/orders', '/about', '/notifications'].includes(normalizedPath) || isTrackOrderPage || isOrderDetailPage || isOrderStatusPage;
+  const isProfilePage = ['/checkout', '/profile', '/settings', '/addresses', '/payment-methods', '/promos', '/help', '/privacy', '/terms', '/partner', '/orders', '/about', '/notifications'].includes(normalizedPath) || isTrackOrderPage || isOrderDetailPage || isOrderStatusPage;
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {!isAuthPage && <Navbar />}
+      
+      <main className={`flex-1 w-full relative z-0 ${isProfilePage ? 'pb-0' : 'pb-20 lg:pb-0'}`}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
+          <Route path="/restaurants" element={<RestaurantPage />} />
+          <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/partner" element={<Partner />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/help" element={<HelpPage />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:id"
+            element={
+              <ProtectedRoute>
+                <OrderDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:id/track"
+            element={
+              <ProtectedRoute>
+                <TrackOrder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:id/status"
+            element={
+              <ProtectedRoute>
+                <OrderStatus />
+              </ProtectedRoute>
+            }
+          />
+          {/* Profile is now protected again */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/addresses"
+            element={
+              <ProtectedRoute>
+                <Addresses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment-methods"
+            element={
+              <ProtectedRoute>
+                <PaymentMethods />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/promos"
+            element={
+              <ProtectedRoute>
+                <Promos />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <RestaurantDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/delivery-dashboard"
+            element={
+              <ProtectedRoute>
+                <DeliveryPartnerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminPanel />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+
+      {!isAuthPage && !isProfilePage && (
+        <footer className="hidden lg:block">
+          <Footer />
+        </footer>
+      )}
+      {!isAuthPage && !isProfilePage && <CartDrawer />}
+    </div>
+  );
+}
+
+function App() {
   return (
     <ErrorBoundary>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          
-          <main className="flex-1 w-full relative z-0 pb-20 lg:pb-0">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
-              <Route path="/restaurants" element={<RestaurantPage />} />
-              <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/partner" element={<Partner />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/help" element={<HelpPage />} />
-
-              {/* Protected Routes */}
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <Checkout />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orders"
-                element={
-                  <ProtectedRoute>
-                    <Orders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orders/:id"
-                element={
-                  <ProtectedRoute>
-                    <OrderDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoute>
-                    <NotificationsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <RestaurantDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/delivery-dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DeliveryPartnerDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminPanel />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-
-          {/* Footer: desktop only — mobile users see footer links in Profile */}
-          <footer className="hidden lg:block">
-            <Footer />
-          </footer>
-          <CartDrawer />
-        </div>
+        <AppContent />
 
         {/* Toast Notifications */}
         <Toaster

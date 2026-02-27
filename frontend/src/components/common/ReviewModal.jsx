@@ -21,8 +21,19 @@ const ReviewModal = ({ isOpen, onClose, order }) => {
 
     try {
       setSubmitting(true);
+
+      const isDemoOrder = String(order?._id || '').startsWith('demo');
+      if (isDemoOrder) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        toast.success('Review submitted successfully! 🎉');
+        onClose();
+        setRating(0);
+        setComment('');
+        return;
+      }
+
       await createReview({
-        restaurantId: order.restaurantId._id || order.restaurantId,
+        restaurantId: order?.restaurantId?._id || order?.restaurantId,
         orderId: order._id,
         rating,
         comment: comment.trim()

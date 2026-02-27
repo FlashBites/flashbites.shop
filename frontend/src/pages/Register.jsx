@@ -345,6 +345,24 @@ const Register = () => {
               </div>
             </div>
 
+            {/* I want to */}
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-900 mb-2">
+                I want to
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full px-3 sm:px-4 py-3 sm:py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 bg-white text-base"
+              >
+                <option value="user">Order Food</option>
+                <option value="restaurant_owner">Register My Restaurant</option>
+                <option value="delivery_partner">Become a Delivery Partner</option>
+              </select>
+            </div>
+
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">Password</label>
@@ -420,9 +438,6 @@ const Register = () => {
                 </button>
               </div>
             </div>
-
-            {/* Remove hidden fields - now visible */}
-            <input type="hidden" name="role" value={formData.role} />
 
             {/* Terms Checkbox */}
             <div className="flex items-start gap-2.5 sm:gap-3 pt-1">

@@ -40,6 +40,7 @@ import Addresses from './pages/Addresses';
 import PaymentMethods from './pages/PaymentMethods';
 import Promos from './pages/Promos';
 import TrackOrder from './pages/TrackOrder';
+import OrderStatus from './pages/OrderStatus';
 import NotFound from './pages/NotFound';
 
 // Google OAuth Success Handler
@@ -122,9 +123,11 @@ function AppContent() {
     : location.pathname;
 
   const isTrackOrderPage = /^\/orders\/[^/]+\/track$/.test(location.pathname);
+  const isOrderStatusPage = /^\/orders\/[^/]+\/status$/.test(location.pathname);
+  const isOrderDetailPage = /^\/orders\/[^/]+$/.test(location.pathname);
   // Hide global navbar/footer on auth and app-like mobile pages
-  const isAuthPage = ['/login', '/register', '/forgot-password', '/profile', '/settings', '/addresses', '/payment-methods', '/promos', '/help', '/privacy', '/terms', '/partner'].includes(normalizedPath) || isTrackOrderPage;
-  const isProfilePage = ['/profile', '/settings', '/addresses', '/payment-methods', '/promos', '/help', '/privacy', '/terms', '/partner'].includes(normalizedPath) || isTrackOrderPage;
+  const isAuthPage = ['/login', '/register', '/forgot-password', '/checkout', '/profile', '/settings', '/addresses', '/payment-methods', '/promos', '/help', '/privacy', '/terms', '/partner', '/orders', '/about', '/notifications'].includes(normalizedPath) || isTrackOrderPage || isOrderDetailPage || isOrderStatusPage;
+  const isProfilePage = ['/checkout', '/profile', '/settings', '/addresses', '/payment-methods', '/promos', '/help', '/privacy', '/terms', '/partner', '/orders', '/about', '/notifications'].includes(normalizedPath) || isTrackOrderPage || isOrderDetailPage || isOrderStatusPage;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -176,6 +179,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <TrackOrder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:id/status"
+            element={
+              <ProtectedRoute>
+                <OrderStatus />
               </ProtectedRoute>
             }
           />

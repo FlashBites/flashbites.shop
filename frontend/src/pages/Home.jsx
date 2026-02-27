@@ -15,6 +15,8 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 
+const BRAND = '#FF523B';
+
 /* ───── Category definitions with SVG icon paths ───── */
 const CATEGORIES = [
   {
@@ -106,30 +108,33 @@ const CATEGORIES = [
   },
 ];
 
-/* ───── Promo banners ───── */
+/* ───── Promo banners (Figma-matched) ───── */
 const PROMOS = [
   {
     id: 1,
-    tag: 'On your first order',
-    bold: '50% OFF',
-    cta: 'Order Now',
-    bg: '#1A1A1A',
+    tag: 'LIMITED TIME OFFER',
+    bold: '50% Discount on your first 3 orders!',
+    sub: 'Taste the difference with FlashBites speed and quality.',
+    cta: 'Claim Now',
+    bg: 'linear-gradient(135deg, #2A9D8F 0%, #264653 100%)',
     img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=280&q=80',
   },
   {
     id: 2,
     tag: 'Orders above ₹199',
     bold: 'Free Delivery',
+    sub: 'No minimum order. Just great food.',
     cta: 'Order Now',
-    bg: '#B30B33',
+    bg: 'linear-gradient(135deg, #FF523B 0%, #FF7A5C 100%)',
     img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=280&q=80',
   },
   {
     id: 3,
     tag: 'Late Night Special',
     bold: 'Meals < ₹250',
+    sub: 'Midnight cravings served hot.',
     cta: 'Explore',
-    bg: '#2A2A2A',
+    bg: 'linear-gradient(135deg, #1A1A1A 0%, #333333 100%)',
     img: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=280&q=80',
   },
 ];
@@ -195,7 +200,7 @@ const Home = () => {
               placeholder="Search for restaurants, dishes..."
             />
             {searchQ && (
-              <button type="submit" className="flex-shrink-0 text-sm font-semibold" style={{ color: '#B30B33' }}>
+              <button type="submit" className="flex-shrink-0 text-sm font-semibold" style={{ color: BRAND }}>
                 Search
               </button>
             )}
@@ -203,26 +208,29 @@ const Home = () => {
         </form>
       </div>
 
-      {/* Promo banners */}
+      {/* Promo banners — Figma style */}
       <div className="mb-6 container-px">
         <div className="snap-scroll-row">
           {PROMOS.map((p) => (
             <Link
               key={p.id}
               to="/restaurants"
-              className="promo-banner snap-start flex-shrink-0 touch-feedback"
+              className="promo-banner snap-start flex-shrink-0 touch-feedback relative"
               style={{
                 background: p.bg,
-                width: 'clamp(240px, 76vw, 310px)',
-                minWidth: '240px',
+                width: 'clamp(280px, 80vw, 420px)',
+                minWidth: '280px',
+                minHeight: '160px',
+                borderRadius: '20px',
               }}
             >
-              <div className="flex-1 min-w-0 pr-2">
-                <p className="text-white/80 text-xs font-medium mb-1 leading-tight">{p.tag}</p>
-                <p className="text-white text-2xl font-extrabold leading-tight mb-3" style={{ letterSpacing: '-0.02em' }}>{p.bold}</p>
+              <div className="flex-1 min-w-0 pr-2 z-10">
+                <p className="text-white/70 text-[10px] font-bold uppercase tracking-wider mb-1.5">{p.tag}</p>
+                <p className="text-white text-xl sm:text-2xl font-extrabold leading-tight mb-2" style={{ letterSpacing: '-0.02em' }}>{p.bold}</p>
+                <p className="text-white/60 text-xs mb-3 line-clamp-2">{p.sub}</p>
                 <button
-                  className="text-white font-semibold text-sm px-4 py-2 rounded-xl"
-                  style={{ background: 'rgba(255,255,255,0.22)' }}
+                  className="text-white font-semibold text-sm px-5 py-2 rounded-xl"
+                  style={{ background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(4px)' }}
                 >
                   {p.cta}
                 </button>
@@ -230,7 +238,7 @@ const Home = () => {
               <img
                 src={p.img}
                 alt=""
-                className="h-24 w-24 object-cover rounded-2xl flex-shrink-0"
+                className="h-28 w-28 object-cover rounded-2xl flex-shrink-0"
                 loading="lazy"
               />
             </Link>
@@ -251,10 +259,10 @@ const Home = () => {
             className={`cat-card snap-start ${activeCat === 'all' ? 'active' : ''}`}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-7 h-7"
-              style={activeCat === 'all' ? { color: '#B30B33' } : { color: '#9CA3AF' }}>
+              style={activeCat === 'all' ? { color: 'white' } : { color: '#9CA3AF' }}>
               <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round"/>
             </svg>
-            <span className="text-xs font-semibold" style={activeCat === 'all' ? { color: '#B30B33' } : { color: '#6B7280' }}>All</span>
+            <span className="text-xs font-semibold" style={activeCat === 'all' ? { color: 'white' } : { color: '#6B7280' }}>All</span>
           </button>
 
           {CATEGORIES.map((cat) => (
@@ -263,10 +271,10 @@ const Home = () => {
               onClick={() => setActiveCat(cat.id)}
               className={`cat-card snap-start ${activeCat === cat.id ? 'active' : ''}`}
             >
-              <span style={activeCat === cat.id ? { color: '#B30B33' } : { color: '#9CA3AF' }}>
+              <span style={activeCat === cat.id ? { color: 'white' } : { color: '#9CA3AF' }}>
                 {cat.icon}
               </span>
-              <span className="text-xs font-semibold whitespace-nowrap" style={activeCat === cat.id ? { color: '#B30B33' } : { color: '#6B7280' }}>
+              <span className="text-xs font-semibold whitespace-nowrap" style={activeCat === cat.id ? { color: 'white' } : { color: '#6B7280' }}>
                 {cat.label}
               </span>
             </button>
@@ -279,7 +287,7 @@ const Home = () => {
         <div className="mb-6 container-px">
           <div className="section-header">
             <h2 className="section-title flex items-center gap-1.5">
-              <FireIcon className="h-5 w-5" style={{ color: '#B30B33' }} />
+              <FireIcon className="h-5 w-5" style={{ color: BRAND }} />
               Featured
             </h2>
             <Link to="/restaurants" className="section-link">See all</Link>
@@ -292,7 +300,7 @@ const Home = () => {
                 className="snap-start flex-shrink-0 group"
               style={{ width: 'clamp(220px, 55vw, 260px)', minWidth: '220px' }}
               >
-                <div className="card relative" style={{ borderRadius: '20px', overflow: 'hidden' }}>
+                <div className="card relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
                   <div className="relative" style={{ height: '160px' }}>
                     <img
                       src={r.image || 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400&q=80'}
@@ -324,16 +332,21 @@ const Home = () => {
           <h2 className="section-title">
             {userLocation && nearbyRests.length > 0
               ? `${nearbyRests.length} Nearby Restaurants`
-              : 'Popular Restaurants'}
+              : 'Nearby Restaurants'}
           </h2>
-          <Link to="/restaurants" className="section-link">See all</Link>
+          <Link to="/restaurants" className="section-link flex items-center gap-1">
+            View All
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
 
         {loading ? (
           <Loader />
         ) : allFiltered.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {allFiltered.slice(0, 8).map((r) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 sm:gap-6">
+            {allFiltered.slice(0, 6).map((r) => (
               <RestaurantCard key={r._id} restaurant={r} />
             ))}
           </div>
@@ -349,9 +362,33 @@ const Home = () => {
       </div>
 
       {/* ══════════════════════════════════
+          APP DOWNLOAD CTA (from Figma)
+      ══════════════════════════════════ */}
+      <div className="container-px mt-10 mb-6">
+        <div className="app-download-section">
+          <h2 className="text-2xl sm:text-3xl font-extrabold mb-3 relative z-10">
+            Get the FlashBites app for better experience
+          </h2>
+          <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto relative z-10">
+            Faster ordering, real-time tracking, and exclusive app-only deals delivered to your fingertips.
+          </p>
+          <div className="flex items-center justify-center gap-4 relative z-10">
+            <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-5 py-3 rounded-xl transition-all text-sm font-semibold">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 2H6.477C5.662 2 5 2.662 5 3.477v17.046C5 21.338 5.662 22 6.477 22h11.046c.815 0 1.477-.662 1.477-1.477V3.477C19 2.662 18.338 2 17.523 2zM12 21a1 1 0 110-2 1 1 0 010 2zm5-3H7V4h10v14z"/></svg>
+              App Store
+            </button>
+            <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-5 py-3 rounded-xl transition-all text-sm font-semibold">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.83.67-1.5 1.5-1.5.31 0 .6.1.84.27L17.35 10a1.5 1.5 0 010 4L5.34 21.73A1.5 1.5 0 013 20.5z"/></svg>
+              Play Store
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════
           WHY FLASHBITES
       ══════════════════════════════════ */}
-      <div className="px-4 mt-8 pb-4">
+      <div className="px-4 mt-4 pb-4">
         <h2 className="section-title mb-4">Why FlashBites?</h2>
         <div className="grid grid-cols-3 gap-3">
           {[
@@ -362,7 +399,7 @@ const Home = () => {
             <div key={f.title} className="card text-center py-4 px-2" style={{ borderRadius: '16px' }}>
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2"
-                style={{ background: '#fcf0f3' }}
+                style={{ background: '#FFF0ED' }}
               >
                 <span className="text-xl">{f.icon}</span>
               </div>

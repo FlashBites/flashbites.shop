@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { BellIcon } from '@heroicons/react/24/outline';
 import { useNotifications } from '../../hooks/useNotifications';
 
+const BRAND = '#FF523B';
+
 const NotificationBell = () => {
   const [showMenu, setShowMenu] = useState(false);
   const {
@@ -70,9 +72,8 @@ const NotificationBell = () => {
                     e.stopPropagation();
                     toggleSound();
                   }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    soundEnabled ? 'bg-[#96092B]' : 'bg-gray-300'
-                  }`}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                  style={{ background: soundEnabled ? BRAND : '#D1D5DB' }}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -84,8 +85,8 @@ const NotificationBell = () => {
 
               {/* Browser Notification */}
               {notificationPermission !== 'granted' && (
-                <div className="p-3 bg-[#fcf0f3] rounded-lg border border-[#fcf0f3]">
-                  <p className="text-xs text-[#96092B] font-medium mb-2">
+                <div className="p-3 rounded-lg border" style={{ background: '#FFF0ED', borderColor: '#FFD0C5' }}>
+                  <p className="text-xs font-medium mb-2" style={{ color: BRAND }}>
                     Enable browser notifications for alerts even when tab is inactive
                   </p>
                   {notificationPermission === 'default' && (
@@ -94,7 +95,10 @@ const NotificationBell = () => {
                         e.stopPropagation();
                         requestNotificationPermission();
                       }}
-                      className="w-full px-3 py-2 bg-[#96092B] text-white rounded-lg text-xs font-semibold hover:bg-[#B30B33] transition-colors shadow-sm"
+                      className="w-full px-3 py-2 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
+                      style={{ background: BRAND }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#E8412D'}
+                      onMouseLeave={e => e.currentTarget.style.background = BRAND}
                     >
                       Enable Notifications
                     </button>
@@ -131,7 +135,10 @@ const NotificationBell = () => {
                       });
                     }
                   }}
-                  className="w-full px-3 py-2.5 bg-[#fcf0f3] hover:bg-[#96092B] hover:text-white text-[#96092B] rounded-lg text-xs font-bold transition-colors duration-200"
+                  className="w-full px-3 py-2.5 rounded-lg text-xs font-bold transition-colors duration-200"
+                  style={{ background: '#FFF0ED', color: BRAND }}
+                  onMouseEnter={e => { e.currentTarget.style.background = BRAND; e.currentTarget.style.color = 'white'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#FFF0ED'; e.currentTarget.style.color = BRAND; }}
                 >
                   🧪 Test Notification & Sound
                 </button>

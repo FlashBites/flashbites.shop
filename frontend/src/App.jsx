@@ -7,6 +7,9 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { getCurrentUser } from './redux/slices/authSlice';
 import { useNotifications } from './hooks/useNotifications';
 
+// Firebase initialization (analytics)
+import './firebase';
+
 // Layout Components
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
@@ -86,7 +89,7 @@ function App() {
         if (isNative && Capacitor.isPluginAvailable('StatusBar')) {
           // Set status bar to transparent or match app color
           await StatusBar.setStyle({ style: Style.Light });
-          await StatusBar.setBackgroundColor({ color: '#e11d48' }); // Your primary color (rose-600)
+          await StatusBar.setBackgroundColor({ color: '#FF523B' }); // Brand orange
           console.log('Status bar initialized successfully');
         }
       } catch (error) {

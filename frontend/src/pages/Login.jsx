@@ -5,13 +5,13 @@ import { login, clearError } from '../redux/slices/authSlice';
 import toast from 'react-hot-toast';
 import logo from '../assets/logo.png';
 
-const BRAND = '#96092B';
+const BRAND = '#FF523B';
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { loading, error, isAuthenticated, user } = useSelector((s) => s.auth);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ phone: '', password: '' });
   const [showPass, setShowPass] = useState(false);
 
   useEffect(() => {
@@ -27,21 +27,21 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) { toast.error('Please fill in all fields'); return; }
+    if (!formData.phone || !formData.password) { toast.error('Please fill in all fields'); return; }
     await dispatch(login(formData));
   };
 
   return (
-    <div className="min-h-screen flex items-stretch" style={{ background: '#ECEEF3' }}>
+    <div className="min-h-screen flex items-stretch" style={{ background: '#F8F6F5' }}>
       {/* Left brand panel — desktop only */}
       <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden bg-white">
         {/* Decorative circles */}
         <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full opacity-10"
           style={{ background: BRAND }} />
-        <div className="absolute -top-16 -left-16 w-32 h-32 rounded-full blur-3xl opacity-20"
-          style={{ background: '#000000' }} />
+        <div className="absolute -top-16 -left-16 w-32 h-32 rounded-full blur-3xl opacity-15"
+          style={{ background: BRAND }} />
         <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full opacity-8"
-          style={{ background: '#000000' }} />
+          style={{ background: BRAND }} />
 
         <div className="relative z-10 text-center max-w-sm">
           <div className="flex items-center justify-center gap-3 mb-10">
@@ -62,7 +62,7 @@ const Login = () => {
               { icon: '💯', t: 'Real-time order tracking' },
             ].map((f) => (
               <div key={f.t} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: '#fcf0f3' }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: '#FFF0ED' }}>
                   {f.icon}
                 </div>
                 <span className="text-sm font-medium text-gray-600">{f.t}</span>
@@ -91,12 +91,17 @@ const Login = () => {
 
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Email</label>
-                <input
-                  id="email" name="email" type="email" autoComplete="email" required
-                  value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="you@example.com" className="input-field"
-                />
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Phone Number</label>
+                <div className="flex">
+                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-gray-200 bg-gray-50 text-gray-500 text-sm font-semibold">
+                    +91
+                  </span>
+                  <input
+                    id="phone" name="phone" type="tel" autoComplete="tel" required maxLength="10"
+                    value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="10-digit mobile number" className="input-field rounded-l-none flex-1"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Password</label>

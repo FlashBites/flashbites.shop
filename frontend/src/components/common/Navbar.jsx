@@ -10,6 +10,7 @@ import {
   MapPinIcon,
   BellIcon,
   ChevronDownIcon,
+  ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeIconSolid,
@@ -25,7 +26,7 @@ import logo from '../../assets/logo.png';
 import NotificationBell from './NotificationBell';
 import { NEARBY_LOCATIONS } from '../../utils/constants';
 
-const BRAND = '#96092B';
+const BRAND = '#FF523B';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -96,13 +97,24 @@ const Navbar = () => {
         <div className="px-4 flex items-center justify-between gap-2"
           style={{ minHeight: '60px' }}>
 
+          {/* Back button — visible on non-home pages */}
+          {location.pathname !== '/' && (
+            <button
+              onClick={() => navigate(-1)}
+              className="icon-btn h-9 w-9 flex-shrink-0"
+              aria-label="Go back"
+            >
+              <ArrowLeftIcon className="h-5 w-5 text-gray-700" />
+            </button>
+          )}
+
           {/* Location selector — left */}
           <div className="flex-1 min-w-0" ref={locationRef}>
             <button
               onClick={() => setShowLocationMenu(!showLocationMenu)}
               className="flex items-center gap-1.5 text-left group"
             >
-              <div className="icon-btn h-8 w-8 flex-shrink-0" style={{ background: '#fcf0f3' }}>
+              <div className="icon-btn h-8 w-8 flex-shrink-0" style={{ background: '#FFF0ED' }}>
                 <MapPinIcon className="h-4 w-4" style={{ color: BRAND }} />
               </div>
               <div className="min-w-0">
@@ -353,10 +365,8 @@ const Navbar = () => {
                   if (tab.isCart) dispatch(toggleCart());
                   else navigate(tab.path === '/profile' && !isAuthenticated ? '/login' : tab.path);
                 }}
-                className={`flex-1 flex flex-col items-center gap-0.5 py-2 px-1 rounded-2xl transition-all duration-200 touch-feedback ${
-                  tab.isCart ? '' : active ? '' : ''
-                }`}
-                style={tab.isCart ? {} : active ? { background: '#fcf0f3' } : {}}
+                className={`flex-1 flex flex-col items-center gap-0.5 py-2 px-1 rounded-2xl transition-all duration-200 touch-feedback`}
+                style={tab.isCart ? {} : active ? { background: '#FFF0ED' } : {}}
               >
                 {tab.isCart ? (
                   /* Cart — branded circle */

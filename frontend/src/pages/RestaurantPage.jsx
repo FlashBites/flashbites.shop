@@ -24,7 +24,7 @@ const CUISINE_TABS = [
 
 const SORT_OPTIONS = ['Ratings 4.0+', 'New to you', 'Fastest delivery', 'Free delivery'];
 
-const BRAND = '#96092B';
+const BRAND = '#FF523B';
 
 const RestaurantPage = () => {
   const dispatch = useDispatch();
@@ -71,7 +71,7 @@ const RestaurantPage = () => {
                   onClick={() => handleCuisine(tab.id)}
                   className="flex-shrink-0 flex flex-col items-center px-3 py-2 rounded-2xl transition-all duration-200 min-w-[52px]"
                   style={active
-                    ? { background: '#fcf0f3', color: BRAND }
+                    ? { background: '#FFF0ED', color: BRAND }
                     : { color: '#9CA3AF' }}
                 >
                   <span className="text-2xl leading-none">{tab.emoji}</span>

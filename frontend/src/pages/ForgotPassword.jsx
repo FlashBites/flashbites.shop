@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import axios from '../api/axios';
+import { setupRecaptcha, sendPhoneOTP, verifyPhoneOTP } from '../firebase';
+
+const BRAND = '#FF523B';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: email, 2: otp, 3: new password
+  const [step, setStep] = useState(1); // 1: phone, 2: otp, 3: new password
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    phone: '',
     otp: '',
     newPassword: '',
     confirmPassword: ''
   });
+  const [firebaseToken, setFirebaseToken] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,22 +25,27 @@ const ForgotPassword = () => {
   const handleSendOTP = async (e) => {
     e.preventDefault();
 
-    if (!formData.email) {
-      toast.error('Please enter your email');
+    if (!formData.phone || formData.phone.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post('/auth/send-otp', {
-        email: formData.email,
-        purpose: 'forgot-password'
-      });
-
-      toast.success(response.data.message || 'OTP sent to your email');
+      setupRecaptcha();
+      const phoneWithCode = `+91${formData.phone}`;
+      await sendPhoneOTP(phoneWithCode);
+      toast.success('OTP sent to your phone number');
       setStep(2);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to send OTP');
+      console.error('Send OTP error:', error);
+      if (error.code === 'auth/too-many-requests') {
+        toast.error('Too many attempts. Please try again later.');
+      } else if (error.code === 'auth/invalid-phone-number') {
+        toast.error('Invalid phone number format');
+      } else {
+        toast.error(error.message || 'Failed to send OTP');
+      }
     } finally {
       setLoading(false);
     }
@@ -52,15 +61,12 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      await axios.post('/auth/verify-otp', {
-        email: formData.email,
-        otp: formData.otp
-      });
-
-      toast.success('OTP verified successfully');
+      const token = await verifyPhoneOTP(formData.otp);
+      setFirebaseToken(token);
+      toast.success('Phone verified successfully');
       setStep(3);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Invalid OTP');
+      toast.error('Invalid OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -82,8 +88,8 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       const response = await axios.post('/auth/reset-password', {
-        email: formData.email,
-        otp: formData.otp,
+        phone: formData.phone,
+        firebaseToken,
         newPassword: formData.newPassword
       });
 
@@ -99,72 +105,74 @@ const ForgotPassword = () => {
   const handleResendOTP = async () => {
     setLoading(true);
     try {
-      await axios.post('/auth/send-otp', {
-        email: formData.email,
-        purpose: 'forgot-password'
-      });
-      toast.success('OTP resent to your email');
+      setupRecaptcha();
+      const phoneWithCode = `+91${formData.phone}`;
+      await sendPhoneOTP(phoneWithCode);
+      toast.success('OTP resent to your phone');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to resend OTP');
+      toast.error(error.message || 'Failed to resend OTP');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8"
+      style={{ background: '#F8F6F5' }}>
       <div className="max-w-md w-full space-y-6 sm:space-y-8">
-        <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8">
+        <div className="bg-white rounded-3xl p-6 sm:p-8"
+          style={{ boxShadow: '0 4px 40px rgba(0,0,0,0.07)' }}>
           <div className="text-center">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
               Forgot Password
             </h2>
-            <p className="text-sm text-gray-600">
-              {step === 1 && "Enter your email to receive OTP"}
-              {step === 2 && "Enter the OTP sent to your email"}
+            <p className="text-sm text-gray-400">
+              {step === 1 && "Enter your phone number to receive OTP"}
+              {step === 2 && "Enter the OTP sent to your phone"}
               {step === 3 && "Create your new password"}
             </p>
           </div>
 
           {/* Step Indicator */}
           <div className="flex justify-center items-center space-x-4 my-6">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 1 ? 'text-white' : 'bg-gray-200 text-gray-500'}`}
+              style={step >= 1 ? { background: BRAND } : {}}>
               1
             </div>
-            <div className={`w-12 h-1 ${step >= 2 ? 'bg-primary-500' : 'bg-gray-200'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+            <div className="w-12 h-1 rounded-full" style={{ background: step >= 2 ? BRAND : '#E5E7EB' }} />
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 2 ? 'text-white' : 'bg-gray-200 text-gray-500'}`}
+              style={step >= 2 ? { background: BRAND } : {}}>
               2
             </div>
-            <div className={`w-12 h-1 ${step >= 3 ? 'bg-primary-500' : 'bg-gray-200'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+            <div className="w-12 h-1 rounded-full" style={{ background: step >= 3 ? BRAND : '#E5E7EB' }} />
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 3 ? 'text-white' : 'bg-gray-200 text-gray-500'}`}
+              style={step >= 3 ? { background: BRAND } : {}}>
               3
             </div>
           </div>
 
-          {/* Step 1: Email */}
+          {/* Step 1: Phone */}
           {step === 1 && (
             <form onSubmit={handleSendOTP} className="mt-8 space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
                 </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Enter your email"
-                />
+                <div className="flex">
+                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-gray-200 bg-gray-50 text-gray-500 text-sm font-semibold">
+                    +91
+                  </span>
+                  <input
+                    id="phone" name="phone" type="tel" maxLength="10" required
+                    value={formData.phone} onChange={handleChange}
+                    className="input-field rounded-l-none flex-1"
+                    placeholder="10-digit mobile number"
+                  />
+                </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
+              <button type="submit" disabled={loading}
+                className="btn-primary w-full py-3">
                 {loading ? 'Sending...' : 'Send OTP'}
               </button>
             </form>
@@ -178,36 +186,25 @@ const ForgotPassword = () => {
                   Enter OTP
                 </label>
                 <input
-                  id="otp"
-                  name="otp"
-                  type="text"
-                  maxLength="6"
-                  required
-                  value={formData.otp}
-                  onChange={handleChange}
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  id="otp" name="otp" type="text" maxLength="6" required
+                  value={formData.otp} onChange={handleChange}
+                  className="input-field text-center text-2xl tracking-[0.5em] font-bold"
                   placeholder="000000"
+                  autoFocus
                 />
-                <p className="mt-2 text-xs text-gray-500 text-center">
-                  OTP sent to {formData.email}
+                <p className="mt-2 text-xs text-gray-400 text-center">
+                  OTP sent to +91 {formData.phone}
                 </p>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
+              <button type="submit" disabled={loading}
+                className="btn-primary w-full py-3">
                 {loading ? 'Verifying...' : 'Verify OTP'}
               </button>
 
               <div className="text-center">
-                <button
-                  type="button"
-                  onClick={handleResendOTP}
-                  disabled={loading}
-                  className="text-sm text-primary-500 hover:text-primary-600 disabled:opacity-50"
-                >
+                <button type="button" onClick={handleResendOTP} disabled={loading}
+                  className="text-sm font-semibold" style={{ color: BRAND }}>
                   Resend OTP
                 </button>
               </div>
@@ -222,14 +219,10 @@ const ForgotPassword = () => {
                   New Password
                 </label>
                 <input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
-                  required
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Enter new password"
+                  id="newPassword" name="newPassword" type="password" required
+                  value={formData.newPassword} onChange={handleChange}
+                  className="input-field"
+                  placeholder="Min 6 characters"
                 />
               </div>
 
@@ -238,37 +231,30 @@ const ForgotPassword = () => {
                   Confirm Password
                 </label>
                 <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Confirm new password"
+                  id="confirmPassword" name="confirmPassword" type="password" required
+                  value={formData.confirmPassword} onChange={handleChange}
+                  className="input-field"
+                  placeholder="Re-enter password"
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
+              <button type="submit" disabled={loading}
+                className="btn-primary w-full py-3">
                 {loading ? 'Resetting...' : 'Reset Password'}
               </button>
             </form>
           )}
 
           <div className="mt-6 text-center">
-            <Link
-              to="/login"
-              className="text-sm text-gray-600 hover:text-primary-500 transition-colors"
-            >
-              Back to Login
+            <Link to="/login" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
+              ← Back to Login
             </Link>
           </div>
         </div>
       </div>
+
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
     </div>
   );
 };

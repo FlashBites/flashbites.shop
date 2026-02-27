@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { ClockIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
+const BRAND = '#FF523B';
+
 const getDiscount = (r) => {
   if (r.discount) return r.discount;
   return Math.max(20, Math.min((r.rating || 4) * 10, 60));
@@ -17,12 +19,12 @@ const RestaurantCard = ({ restaurant: r }) => {
     <Link
       to={`/restaurant/${r._id}`}
       className="block bg-white group animate-fade-in"
-      style={{ borderRadius: '20px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', overflow: 'hidden', transition: 'box-shadow 0.25s ease, transform 0.25s ease' }}
+      style={{ borderRadius: '16px', boxShadow: '0 2px 16px rgba(0,0,0,0.05)', overflow: 'hidden', transition: 'box-shadow 0.25s ease, transform 0.25s ease' }}
       onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       {/* Image */}
-      <div className="relative" style={{ height: '160px' }}>
+      <div className="relative" style={{ height: '170px' }}>
         <img
           src={r.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80'}
           alt={r.name}
@@ -30,12 +32,46 @@ const RestaurantCard = ({ restaurant: r }) => {
           loading="lazy"
         />
 
-        {/* Discount chip */}
+        {/* Badges row at top */}
+        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+          {/* Free Delivery badge */}
+          {(r.deliveryFee === 0 || r.deliveryFee === '0') && (
+            <div
+              className="text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm"
+              style={{ background: 'rgba(22,163,74,0.92)', backdropFilter: 'blur(4px)' }}
+            >
+              FREE DELIVERY
+            </div>
+          )}
+
+          {/* Top Rated badge */}
+          {rating >= 4.5 && (
+            <div
+              className="text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm"
+              style={{ background: 'rgba(255,82,59,0.92)', backdropFilter: 'blur(4px)' }}
+            >
+              TOP RATED
+            </div>
+          )}
+
+          {/* Veg / Discount chip if not top rated */}
+          {rating < 4.5 && (
+            <div
+              className="text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm"
+              style={{ background: 'rgba(255,82,59,0.92)', backdropFilter: 'blur(4px)' }}
+            >
+              {r.isVeg ? '🌿 PURE VEG' : `FLAT ₹${discount} OFF`}
+            </div>
+          )}
+        </div>
+
+        {/* Rating badge — floating on bottom-right of image */}
         <div
-          className="absolute top-2.5 left-2.5 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm"
-          style={{ background: 'rgba(255,106,77,0.92)', backdropFilter: 'blur(4px)' }}
+          className="absolute bottom-2.5 right-2.5 flex items-center gap-0.5 text-white text-[11px] font-bold px-2 py-1 rounded-lg shadow-md"
+          style={{ background: ratingBg }}
         >
-          {r.isVeg ? '🌿 PURE VEG' : `FLAT ₹${discount} OFF`}
+          <StarIcon className="h-3 w-3" />
+          {r.rating || '4.0'}
         </div>
 
         {/* Bookmark */}
@@ -56,29 +92,12 @@ const RestaurantCard = ({ restaurant: r }) => {
             </span>
           </div>
         )}
-
-        {/* Free delivery tag */}
-        {(r.deliveryFee === 0 || r.deliveryFee === '0') && (
-          <div
-            className="absolute bottom-2.5 left-2.5 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm"
-            style={{ background: 'rgba(22,163,74,0.9)', backdropFilter: 'blur(4px)' }}
-          >
-            Free Delivery
-          </div>
-        )}
       </div>
 
       {/* Info */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-0.5">
           <h3 className="text-[15px] font-bold text-gray-900 leading-tight flex-1 line-clamp-1">{r.name}</h3>
-          <div
-            className="flex-shrink-0 flex items-center gap-0.5 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-lg shadow-sm"
-            style={{ background: ratingBg }}
-          >
-            <StarIcon className="h-2.5 w-2.5" />
-            {r.rating || '4.0'}
-          </div>
         </div>
 
         <p className="text-[11px] text-gray-400 mb-2.5 line-clamp-1 font-medium">
@@ -87,11 +106,11 @@ const RestaurantCard = ({ restaurant: r }) => {
 
         <div className="flex items-center gap-2.5 text-[11px] font-medium text-gray-500">
           <span className="flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded-md">
-            <ClockIcon className="h-3 w-3 text-brand" style={{ color: '#B30B33' }} />
+            <ClockIcon className="h-3 w-3" style={{ color: BRAND }} />
             {String(r.deliveryTime || '30').replace(/\s*min\s*$/i, '')} min
           </span>
           <span className="flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded-md">
-            <MapPinIcon className="h-3 w-3 text-brand" style={{ color: '#B30B33' }} />
+            <MapPinIcon className="h-3 w-3" style={{ color: BRAND }} />
             {r.distance ? `${r.distance.toFixed(1)} km` : '2.4 km'}
           </span>
           <span className="bg-gray-50 px-1.5 py-0.5 rounded-md truncate">
@@ -101,10 +120,10 @@ const RestaurantCard = ({ restaurant: r }) => {
 
         {/* Offer strip */}
         <div className="mt-2.5 pt-2.5 border-t border-dashed border-gray-100 flex items-center gap-1.5 opacity-90">
-          <div className="h-4 w-4 rounded-full flex items-center justify-center" style={{ background: '#fcf0f3' }}>
-            <span className="text-[9px] font-bold block" style={{ color: '#B30B33' }}>%</span>
+          <div className="h-4 w-4 rounded-full flex items-center justify-center" style={{ background: '#FFF0ED' }}>
+            <span className="text-[9px] font-bold block" style={{ color: BRAND }}>%</span>
           </div>
-          <span className="text-[10px] font-bold" style={{ color: '#B30B33' }}>
+          <span className="text-[10px] font-bold" style={{ color: BRAND }}>
             Flat ₹{discount} OFF above ₹{discount + 89}
           </span>
         </div>

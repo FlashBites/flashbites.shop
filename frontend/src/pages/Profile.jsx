@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
-const BRAND = '#96092B';
+const BRAND = '#FF523B';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -116,8 +116,8 @@ const Profile = () => {
   ];
 
   const TABS = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'addresses', label: 'Addresses' },
+    { id: 'profile', label: '👤 Profile' },
+    { id: 'addresses', label: '📍 Addresses' },
   ];
 
   return (
@@ -127,8 +127,8 @@ const Profile = () => {
         {/* Avatar header */}
         <div className="flex items-center gap-4 mb-6">
           <div
-            className="h-16 w-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md"
-            style={{ background: `linear-gradient(135deg, ${BRAND}, #333333)` }}
+            className="h-16 w-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg"
+            style={{ background: `linear-gradient(135deg, ${BRAND}, #FF7A5C)` }}
           >
             {user?.name?.[0]?.toUpperCase() || 'U'}
           </div>
@@ -146,7 +146,7 @@ const Profile = () => {
               onClick={() => setActiveTab(t.id)}
               className="flex-1 py-2.5 rounded-2xl text-sm font-semibold transition-all"
               style={activeTab === t.id
-                ? { background: BRAND, color: 'white' }
+                ? { background: BRAND, color: 'white', boxShadow: '0 4px 12px rgba(255,82,59,0.25)' }
                 : { background: 'white', color: '#6B7280', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
             >
               {t.label}

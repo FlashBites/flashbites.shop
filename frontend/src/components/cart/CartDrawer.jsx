@@ -7,6 +7,8 @@ import { removeFromCart, updateQuantity, clearCart } from '../../redux/slices/ca
 import { formatCurrency } from '../../utils/formatters';
 import { calculateCartTotal } from '../../utils/helpers';
 
+const BRAND = '#FF523B';
+
 const CartDrawer = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -79,7 +81,8 @@ const CartDrawer = () => {
               <p className="text-gray-500 text-sm">Your cart is empty</p>
               <button
                 onClick={() => dispatch(toggleCart())}
-                className="mt-4 text-primary-600 font-medium text-sm touch-feedback"
+                className="mt-4 font-medium text-sm touch-feedback"
+                style={{ color: BRAND }}
               >
                 Browse Restaurants →
               </button>
@@ -108,7 +111,7 @@ const CartDrawer = () => {
                     <p className="text-xs text-gray-500 mt-0.5">
                       {formatCurrency(Number(item.price) || 0)} each
                     </p>
-                    <p className="text-xs text-primary-600 font-semibold mt-0.5">
+                    <p className="text-xs font-semibold mt-0.5" style={{ color: BRAND }}>
                       {formatCurrency((Number(item.price) || 0) * (item.quantity || 1))}
                     </p>
 
@@ -119,7 +122,8 @@ const CartDrawer = () => {
                           itemId: item._id, 
                           quantity: item.quantity - 1 
                         }))}
-                        className="w-8 h-8 border-2 border-primary-600 text-primary-600 rounded-lg flex items-center justify-center touch-feedback"
+                        className="w-8 h-8 border-2 rounded-lg flex items-center justify-center touch-feedback"
+                        style={{ borderColor: BRAND, color: BRAND }}
                         aria-label="Decrease quantity"
                       >
                         <MinusIcon className="h-4 w-4" />
@@ -130,7 +134,8 @@ const CartDrawer = () => {
                           itemId: item._id, 
                           quantity: item.quantity + 1 
                         }))}
-                        className="w-8 h-8 border-2 border-primary-600 text-primary-600 rounded-lg flex items-center justify-center touch-feedback"
+                        className="w-8 h-8 border-2 rounded-lg flex items-center justify-center touch-feedback"
+                        style={{ borderColor: BRAND, color: BRAND }}
                         aria-label="Increase quantity"
                       >
                         <PlusIcon className="h-4 w-4" />
@@ -183,7 +188,7 @@ const CartDrawer = () => {
               </div>
               <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-200">
                 <span>Total</span>
-                <span className="text-primary-600">{formatCurrency(total)}</span>
+                <span style={{ color: BRAND }}>{formatCurrency(total)}</span>
               </div>
             </div>
 
@@ -198,7 +203,8 @@ const CartDrawer = () => {
             {/* Continue Shopping */}
             <button
               onClick={() => dispatch(toggleCart())}
-              className="w-full py-2 text-primary-600 text-sm font-medium touch-feedback"
+              className="w-full py-2 text-sm font-medium touch-feedback"
+              style={{ color: BRAND }}
             >
               Continue Shopping
             </button>

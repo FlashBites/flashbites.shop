@@ -9,6 +9,7 @@ import ReviewsList from '../components/restaurant/ReviewsList';
 import { Loader } from '../components/common/Loader';
 import { formatCurrency } from '../utils/formatters';
 import { FOOD_CATEGORIES } from '../utils/constants';
+import { isRestaurantOpen } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 const BRAND = '#FF523B';
@@ -45,6 +46,9 @@ const RestaurantDetail = () => {
 
   if (loading) return <Loader />;
   if (!restaurant) return <div>Restaurant not found</div>;
+
+  const { isOpen, opensAt, closesAt } = isRestaurantOpen(restaurant.timing, restaurant.acceptingOrders !== false);
+  const isOrderable = isOpen;
 
   const categories = ['All', ...FOOD_CATEGORIES];
   const filteredMenu = selectedCategory === 'All'
@@ -88,14 +92,14 @@ const RestaurantDetail = () => {
               
               {/* Open/Closed Status Badge */}
               <div className="flex flex-col items-start sm:items-end">
-                {restaurant.acceptingOrders ? (
+                {isOpen ? (
                   <span className="px-4 sm:px-6 py-2 bg-green-500 text-white text-xs sm:text-sm font-bold rounded-full shadow-lg mb-2 flex items-center gap-2">
                     <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                    OPEN NOW
+                    OPEN NOW · Closes at {closesAt}
                   </span>
                 ) : (
-                  <span className="px-4 sm:px-6 py-2 bg-red-500 text-white text-xs sm:text-sm font-bold rounded-full shadow-lg mb-2">
-                    CLOSED
+                  <span className="px-4 sm:px-6 py-2 bg-gray-700 text-white text-xs sm:text-sm font-bold rounded-full shadow-lg mb-2">
+                    CLOSED · Opens at {opensAt}
                   </span>
                 )}
               </div>
@@ -105,12 +109,18 @@ const RestaurantDetail = () => {
       </div>
 
       {/* Closed Restaurant Alert */}
-      {!restaurant.acceptingOrders && (
-        <div className="max-w-7xl mx-auto container-px -mt-4 mb-6">
-          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-            <p className="text-red-800 font-semibold text-center">
-              ⚠️ This restaurant is currently closed and not accepting orders. Please check back later.
-            </p>
+      {!isOrderable && (
+        <div className="max-w-7xl mx-auto container-px mt-4 mb-2">
+          <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 flex items-center gap-3">
+            <span className="text-2xl">⏰</span>
+            <div>
+              <p className="text-amber-900 font-semibold">
+                This restaurant is currently closed.
+              </p>
+              {opensAt && (
+                <p className="text-amber-700 text-sm">Opens at {opensAt}. You can browse the menu but cannot place orders right now.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -145,8 +155,8 @@ const RestaurantDetail = () => {
             </p>
           </div>
           
-          {!restaurant.acceptingOrders && (
-            <span className="bg-red-100 text-red-800 px-4 py-2 rounded-full text-xs sm:text-sm font-medium">Currently Not Accepting Orders</span>
+          {!isOrderable && (
+            <span className="bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-xs sm:text-sm font-medium">⏰ Currently Not Accepting Orders</span>
           )}
         </div>
 
@@ -193,7 +203,7 @@ const RestaurantDetail = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredMenu && filteredMenu.length > 0 ? (
             filteredMenu.map((item) => (
-              <MenuCard key={item._id} item={item} restaurant={restaurant} />
+              <MenuCard key={item._id} item={item} restaurant={restaurant} disabled={!isOrderable} />
             ))
           ) : (
             <div className="col-span-full text-center py-12">

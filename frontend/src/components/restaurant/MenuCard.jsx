@@ -7,10 +7,14 @@ import toast from 'react-hot-toast';
 
 const BRAND = '#FF523B';
 
-const MenuCard = ({ item, restaurant }) => {
+const MenuCard = ({ item, restaurant, disabled = false }) => {
   const dispatch = useDispatch();
 
   const handleAddToCart = () => {
+    if (disabled) {
+      toast.error('Restaurant is currently closed');
+      return;
+    }
     dispatch(addToCart({ item, restaurant }));
     toast.success('Added to cart!');
   };

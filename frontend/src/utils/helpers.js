@@ -24,18 +24,41 @@ export const debounce = (func, delay) => {
   };
 };
 
-export const isRestaurantOpen = (timing) => {
-  if (!timing) return false;
-  
+/**
+ * Check if a restaurant is currently open based on its timing.
+ * Supports overnight hours (e.g. open: '22:00', close: '02:00').
+ * @param {Object} timing - { open: 'HH:MM', close: 'HH:MM' }
+ * @param {boolean} acceptingOrders - backend flag
+ * @returns {{ isOpen: boolean, opensAt: string, closesAt: string }}
+ */
+export const isRestaurantOpen = (timing, acceptingOrders = true) => {
+  const result = { isOpen: false, opensAt: '', closesAt: '' };
+  if (!acceptingOrders) return result;
+  if (!timing || !timing.open || !timing.close) return { ...result, isOpen: true }; // no timing = always open
+
   const now = new Date();
-  const currentDay = now.toLocaleDateString('en-US', { weekday: 'lowercase' });
-  const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
-  
-  const todayTiming = timing[currentDay];
-  if (!todayTiming || todayTiming.isClosed) return false;
-  
-  return currentTime >= todayTiming.open && currentTime <= todayTiming.close;
+  const [openH, openM] = timing.open.split(':').map(Number);
+  const [closeH, closeM] = timing.close.split(':').map(Number);
+
+  const openMins = openH * 60 + openM;
+  const closeMins = closeH * 60 + closeM;
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+
+  let isOpen;
+  if (openMins <= closeMins) {
+    // Same day (e.g. 09:00 - 22:00)
+    isOpen = nowMins >= openMins && nowMins < closeMins;
+  } else {
+    // Overnight (e.g. 22:00 - 02:00)
+    isOpen = nowMins >= openMins || nowMins < closeMins;
+  }
+
+  result.isOpen = isOpen;
+  result.opensAt = timing.open;
+  result.closesAt = timing.close;
+  return result;
 };
+
 
 export const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Radius of the Earth in km

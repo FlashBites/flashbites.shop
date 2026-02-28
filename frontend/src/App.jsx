@@ -107,10 +107,13 @@ function App() {
   }, [isNative]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Always try to restore the user on app mount if a token is in storage.
+    // This keeps the user logged in across page refreshes / app restarts.
+    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+    if (token) {
       dispatch(getCurrentUser());
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch]);
 
   return (
     <ErrorBoundary>

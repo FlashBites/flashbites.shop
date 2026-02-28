@@ -350,6 +350,22 @@ const Home = () => {
               <RestaurantCard key={r._id} restaurant={r} />
             ))}
           </div>
+        ) : userLocation && nearbyRests.length === 0 ? (
+          /* Coming Soon — no restaurants in this city yet */
+          <div className="text-center py-16 px-4">
+            <div className="text-6xl mb-4">🚀</div>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">Coming Soon to Your City!</h3>
+            <p className="text-gray-400 text-sm max-w-xs mx-auto mb-6">
+              We're expanding fast! FlashBites isn't in your area yet but we'll be there soon.
+            </p>
+            <button
+              onClick={clearLocation}
+              className="btn-primary text-sm py-2.5 px-6"
+              style={{ background: BRAND }}
+            >
+              Browse All Restaurants
+            </button>
+          </div>
         ) : (
           <div className="text-center py-16">
             <div className="text-5xl mb-4 animate-float">🍽️</div>

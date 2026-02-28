@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: false,
     lowercase: true,
     trim: true,
     match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: false,
+    required: [true, 'Phone number is required'],
     trim: true,
     match: [/^[0-9]{10}$/, 'Please provide a valid 10-digit phone number']
   },
@@ -45,6 +45,10 @@ const userSchema = new mongoose.Schema({
     default: true
   },
   isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  isPhoneVerified: {
     type: Boolean,
     default: false
   },
@@ -114,8 +118,8 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
 };
 
 // Indexes
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ phone: 1 }, { unique: true, sparse: true }); // Sparse allows multiple null values
+userSchema.index({ email: 1 }, { unique: true, sparse: true }); // Sparse allows multiple null values
+userSchema.index({ phone: 1 }, { unique: true });
 userSchema.index({ role: 1 });
 
 module.exports = mongoose.model('User', userSchema);

@@ -7,33 +7,33 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary: Black/Grayscale
+        // Primary: Warm Orange (from Figma)
         primary: {
-          50:  '#f9f9f9',
-          100: '#f0f0f0',
-          200: '#e0e0e0',
-          300: '#c0c0c0',
-          400: '#a0a0a0',
-          500: '#808080',
-          600: '#606060',
-          700: '#404040',
-          800: '#202020',
-          900: '#000000',
-          DEFAULT: '#000000',
+          50:  '#FFF5F2',
+          100: '#FFE8E2',
+          200: '#FFD0C5',
+          300: '#FFB09E',
+          400: '#FF8267',
+          500: '#FF523B',
+          600: '#E8412D',
+          700: '#C63424',
+          800: '#A02A1D',
+          900: '#7A2018',
+          DEFAULT: '#FF523B',
         },
-        // Accent: Deep Red
+        // Accent: same orange for consistency
         accent: {
-          50:  '#fcf0f3',
-          100: '#f8e0e6',
-          200: '#f0b3c4',
-          300: '#e5809e',
-          400: '#d94d78',
-          500: '#96092B',
-          600: '#870827',
-          700: '#780722',
-          800: '#5a051a',
-          900: '#3c0311',
-          DEFAULT: '#96092B',
+          50:  '#FFF5F2',
+          100: '#FFE8E2',
+          200: '#FFD0C5',
+          300: '#FFB09E',
+          400: '#FF8267',
+          500: '#FF523B',
+          600: '#E8412D',
+          700: '#C63424',
+          800: '#A02A1D',
+          900: '#7A2018',
+          DEFAULT: '#FF523B',
         },
         // Highlight: Fresh Green
         highlight: {
@@ -45,11 +45,11 @@ export default {
           DEFAULT: '#00C853',
         },
         brand: {
-          black: '#000000',
-          red:   '#96092B',
+          black: '#1A1A1A',
+          orange: '#FF523B',
           green: '#00C853',
           white: '#FFFFFF',
-          bg:    '#FDFDFD',
+          bg:    '#F8F6F5',
         }
       },
       fontFamily: {
@@ -68,8 +68,8 @@ export default {
         'nav':       '0 1px 0 rgba(0,0,0,0.05)',
       },
       backgroundImage: {
-        'dark-gradient':  'linear-gradient(135deg, #000000 0%, #1a1a1a 100%)',
-        'red-gradient':   'linear-gradient(135deg, #96092B 0%, #c4103b 100%)',
+        'dark-gradient':  'linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%)',
+        'orange-gradient':'linear-gradient(135deg, #FF523B 0%, #FF7A5C 100%)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',

@@ -21,7 +21,7 @@ Account Settings (top right)
 ```
 MAILJET_API_KEY=your_api_key_here
 MAILJET_SECRET_KEY=your_secret_key_here
-MAILJET_FROM_EMAIL=noreply@flashbites.shop
+MAILJET_FROM_EMAIL=noreply@flashbites.in
 ```
 
 ### 4️⃣ Done! ✅
@@ -68,7 +68,7 @@ node test-mailjet.js your-email@example.com
 
 ## 🌐 URLs
 
-- **Frontend**: https://flashbites.shop
+- **Frontend**: https://flashbites.in
 - **Backend**: https://flashbites-backend.up.railway.app
 - **Mailjet**: https://www.mailjet.com/
 

@@ -6,18 +6,17 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────
-   DESIGN TOKENS
+   DESIGN TOKENS  (Figma-matched)
 ───────────────────────────────────────── */
 :root {
-  /* Brand */
-  --brand-black:    #000000;
-  --brand:          #96092B;    /* Deep Red accent */
-  --brand-dark:     #780722;
-  --brand-hover:    #B30B33;    /* Lighter red for hover states */
-  --brand-bg:       #fcf0f3;    /* light red/pink for active states */
+  /* Brand — Bright Orange */
+  --brand:          #FF523B;
+  --brand-dark:     #E8412D;
+  --brand-hover:    #FF6B52;
+  --brand-bg:       #FFF0ED;    /* warm orange tint for active states */
 
   /* Backgrounds */
-  --bg-app:         #F8F9FA;    /* cleaner whiteish gray */
+  --bg-app:         #F8F6F5;    /* warm off-white from Figma */
   --bg-card:        #FFFFFF;
   --bg-input:       #F3F4F6;
 
@@ -27,16 +26,16 @@
   --text-muted:     #A3A3A3;
 
   /* Layout */
-  --card-radius:    20px;
-  --nav-height-mob: 68px;        
+  --card-radius:    16px;
+  --nav-height-mob: 68px;
   --nav-height-desk: 64px;
   --bottom-nav-h:   72px;
   --safe-area-inset-top: env(safe-area-inset-top);
   --safe-area-inset-bottom: env(safe-area-inset-bottom);
 
-  /* Shadows - Lightened */
-  --shadow-card: 0 4px 20px rgba(0,0,0,0.04);
-  --shadow-card-hover: 0 10px 30px rgba(0,0,0,0.06);
+  /* Shadows */
+  --shadow-card: 0 2px 16px rgba(0,0,0,0.05);
+  --shadow-card-hover: 0 8px 32px rgba(0,0,0,0.10);
   --shadow-nav: 0 -1px 0 rgba(0,0,0,0.05);
 }
 
@@ -93,25 +92,25 @@ input, textarea, select {
   /* ── Buttons ── */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 font-semibold py-3 px-6 rounded-2xl text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-    background: var(--brand-black);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    background: var(--brand);
+    box-shadow: 0 4px 16px rgba(255,82,59,0.30);
   }
   .btn-primary:hover:not(:disabled) {
-    background: #333333;
+    background: var(--brand-dark);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 24px rgba(255,82,59,0.25);
   }
   .btn-primary:active:not(:disabled) { transform: translateY(0); }
-  
+
   .btn-accent {
     @apply inline-flex items-center justify-center gap-2 font-semibold py-3 px-6 rounded-2xl text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
     background: var(--brand);
-    box-shadow: 0 4px 16px rgba(150,9,43,0.30);
+    box-shadow: 0 4px 16px rgba(255,82,59,0.30);
   }
   .btn-accent:hover:not(:disabled) {
     background: var(--brand-hover);
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(150,9,43,0.25);
+    box-shadow: 0 8px 24px rgba(255,82,59,0.25);
   }
   .btn-accent:active:not(:disabled) { transform: translateY(0); }
 
@@ -152,9 +151,9 @@ input, textarea, select {
   }
   .input-field:focus {
     outline: none;
-    border-color: var(--brand-black);
+    border-color: var(--brand);
     background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 0 0 3px rgba(255,82,59,0.10);
   }
 
   /* ── Search bar ── */
@@ -164,9 +163,9 @@ input, textarea, select {
     border: 1.5px solid transparent;
   }
   .search-bar:focus-within {
-    border-color: var(--brand-black);
+    border-color: var(--brand);
     background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 0 0 3px rgba(255,82,59,0.10);
   }
   .search-bar input {
     border: none; outline: none; background: transparent;
@@ -184,13 +183,13 @@ input, textarea, select {
     min-width: 72px;
   }
   .cat-card:hover {
-    border-color: var(--brand-black);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border-color: var(--brand);
+    box-shadow: 0 4px 16px rgba(255,82,59,0.12);
     transform: translateY(-2px);
   }
   .cat-card.active {
-    border-color: var(--brand-black);
-    background: #000000;
+    border-color: var(--brand);
+    background: var(--brand);
     color: white;
   }
   .cat-card svg { transition: transform 0.2s; }
@@ -252,6 +251,9 @@ input, textarea, select {
     @apply text-sm font-semibold;
     color: var(--brand);
   }
+  .section-link:hover {
+    opacity: 0.8;
+  }
 }
 
 /* ─────────────────────────────────────────
@@ -291,7 +293,7 @@ input, textarea, select {
   color: var(--brand);
 }
 .text-brand-gradient {
-  background: linear-gradient(135deg, #000000, #333333);
+  background: linear-gradient(135deg, #FF523B, #FF7A5C);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -339,7 +341,6 @@ input, textarea, select {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  /* Remove negative margins so it aligns with container edge */
   padding-left: 0;
   padding-right: 0;
   margin-left: 0;
@@ -363,3 +364,26 @@ input, textarea, select {
 }
 .snap-scroll-row::-webkit-scrollbar { display: none; }
 .snap-scroll-row > * { scroll-snap-align: start; flex-shrink: 0; }
+
+/* ─────────────────────────────────────────
+   APP DOWNLOAD SECTION (Figma "Get the FlashBites app")
+───────────────────────────────────────── */
+.app-download-section {
+  background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+  border-radius: 24px;
+  color: white;
+  padding: 48px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.app-download-section::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  background: rgba(255,82,59,0.12);
+  border-radius: 50%;
+}

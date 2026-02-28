@@ -1,137 +1,44 @@
+const axios = require('axios');
 const User = require('../models/User');
 const { generateToken, generateRefreshToken } = require('../utils/tokenUtils');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
-const { generateOTP, sendOTPEmail, sendWelcomeEmail, sendPasswordResetSuccessEmail } = require('../utils/emailService');
-const crypto = require('crypto');
+const { verifyFirebaseToken } = require('../config/firebaseAdmin');
+const { sendWelcomeEmail, sendPasswordResetSuccessEmail } = require('../utils/emailService');
 
-// @desc    Send OTP for registration
-// @route   POST /api/auth/send-otp
-// @access  Public
-exports.sendOTP = async (req, res) => {
-  try {
-    const { email, purpose } = req.body; // purpose: 'registration' or 'forgot-password'
-
-    if (!email) {
-      return errorResponse(res, 400, 'Email is required');
-    }
-
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    
-    if (purpose === 'registration') {
-      // Allow OTP resend only if user is not fully registered (temp user)
-      if (existingUser && existingUser.isEmailVerified) {
-        return errorResponse(res, 400, 'Email already registered');
-      }
-      // If temp user exists but not verified, we'll update it (allow retry)
-    }
-
-    if (purpose === 'forgot-password' && (!existingUser || !existingUser.isEmailVerified)) {
-      return errorResponse(res, 404, 'No account found with this email');
-    }
-
-    // Generate OTP
-    const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    if (purpose === 'forgot-password') {
-      // Update existing user
-      existingUser.otp = otp;
-      existingUser.otpExpires = otpExpires;
-      await existingUser.save({ validateBeforeSave: false });
-    } else {
-      // For registration, create or update temp user
-      // This allows users to retry with the same email if they didn't complete registration
-      const updateData = { 
-        email,
-        otp,
-        otpExpires,
-        isEmailVerified: false,
-        password: 'temp123' // Will be updated during registration
-      };
-      
-      // Don't set phone field at all - let it be undefined
-      const tempUser = await User.findOneAndUpdate(
-        { email },
-        updateData,
-        { upsert: true, new: true, setDefaultsOnInsert: false }
-      );
-    }
-
-    // Send success response immediately
-    successResponse(res, 200, 'OTP sent successfully to your email', { 
-      email,
-      expiresIn: '10 minutes'
-    });
-
-    // Send OTP email asynchronously in background (don't await)
-    sendOTPEmail(email, otp, purpose === 'registration' ? 'verification' : 'reset')
-      .catch(err => console.error('Background email send failed:', err.message));
-
-  } catch (error) {
-    errorResponse(res, 500, 'Failed to send OTP', error.message);
-  }
-};
-
-// @desc    Verify OTP
-// @route   POST /api/auth/verify-otp
-// @access  Public
-exports.verifyOTP = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-
-    if (!email || !otp) {
-      return errorResponse(res, 400, 'Email and OTP are required');
-    }
-
-    // Find user with this email and OTP
-    const user = await User.findOne({ 
-      email,
-      otp,
-      otpExpires: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return errorResponse(res, 400, 'Invalid or expired OTP');
-    }
-
-    successResponse(res, 200, 'OTP verified successfully', { 
-      email,
-      verified: true
-    });
-  } catch (error) {
-    errorResponse(res, 500, 'OTP verification failed', error.message);
-  }
-};
-
-// @desc    Register new user (with OTP verification)
+// @desc    Register new user (with Firebase Phone OTP verification)
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, phone, role, otp } = req.body;
+    const { name, phone, password, role, email, firebaseToken } = req.body;
 
-    // Verify OTP first
-    const userWithOTP = await User.findOne({ 
-      email,
-      otp,
-      otpExpires: { $gt: Date.now() }
-    });
-
-    if (!userWithOTP) {
-      return errorResponse(res, 400, 'Invalid or expired OTP. Please request a new OTP.');
+    // Validate required fields
+    if (!name || !phone || !password || !firebaseToken) {
+      return errorResponse(res, 400, 'Name, phone, password, and Firebase verification are required');
     }
 
-    // Check if already fully registered
-    if (userWithOTP.isEmailVerified && userWithOTP.password !== 'temp123') {
-      return errorResponse(res, 400, 'User already exists with this email');
+    // Verify Firebase ID token
+    const decoded = await verifyFirebaseToken(firebaseToken);
+    if (!decoded) {
+      return errorResponse(res, 401, 'Phone verification failed. Please try again.');
     }
 
-    // Check phone number
-    const existingPhone = await User.findOne({ phone, _id: { $ne: userWithOTP._id } });
-    if (existingPhone) {
-      return errorResponse(res, 400, 'Phone number already registered');
+    // Extract phone from Firebase token and compare
+    const firebasePhone = decoded.phone_number; // e.g. "+911234567890"
+    const normalizedPhone = phone.replace(/\D/g, '').slice(-10); // last 10 digits
+    const firebaseNormalized = firebasePhone ? firebasePhone.replace(/\D/g, '').slice(-10) : '';
+
+    if (normalizedPhone !== firebaseNormalized) {
+      return errorResponse(res, 400, 'Phone number mismatch. The OTP was sent to a different number.');
     }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ phone: normalizedPhone }).select('+password');
+    if (existingUser && existingUser.isPhoneVerified && existingUser.password) {
+      return errorResponse(res, 400, 'Phone number already registered. Please login.');
+    }
+
+
 
     // Validate role
     const validRoles = ['user', 'restaurant_owner', 'delivery_partner'];
@@ -139,40 +46,67 @@ exports.register = async (req, res) => {
       return errorResponse(res, 400, 'Invalid role specified');
     }
 
-    // Update user with full details
-    userWithOTP.name = name;
-    userWithOTP.password = password;
-    userWithOTP.phone = phone;
-    userWithOTP.role = role || 'user';
-    userWithOTP.isEmailVerified = true;
-    userWithOTP.otp = null;
-    userWithOTP.otpExpires = null;
-    
-    await userWithOTP.save();
+    let user;
+    if (existingUser) {
+      // Update existing unverified user
+      existingUser.name = name;
+      existingUser.password = password;
+      existingUser.phone = normalizedPhone;
+      existingUser.email = email || null;
+      existingUser.role = role || 'user';
+      existingUser.isPhoneVerified = true;
+      existingUser.otp = null;
+      existingUser.otpExpires = null;
+      await existingUser.save();
+      user = existingUser;
+    } else {
+      // Create new user
+      user = await User.create({
+        name,
+        phone: normalizedPhone,
+        password,
+        email: email || null,
+        role: role || 'user',
+        isPhoneVerified: true,
+      });
+    }
 
     // Generate tokens
-    const accessToken = generateToken(userWithOTP._id);
-    const refreshToken = generateRefreshToken(userWithOTP._id);
+    const accessToken = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
     // Save refresh token
-    userWithOTP.refreshToken = refreshToken;
-    await userWithOTP.save({ validateBeforeSave: false });
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
 
     // Remove password from response
-    userWithOTP.password = undefined;
-    userWithOTP.refreshToken = undefined;
+    user.password = undefined;
+    user.refreshToken = undefined;
 
     successResponse(res, 201, 'Registration successful', {
-      user: userWithOTP,
+      user,
       accessToken,
       refreshToken
     });
 
-    // Send welcome email in background (don't await)
-    sendWelcomeEmail(email, name)
-      .catch(err => console.error('Background welcome email failed:', err.message));
+    // Send welcome email in background if email provided
+    if (email) {
+      sendWelcomeEmail(email, name)
+        .catch(err => console.error('Background welcome email failed:', err.message));
+    }
 
   } catch (error) {
+    console.error('Registration error:', error);
+    // Handle MongoDB duplicate key error
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || 'field';
+      const message = field === 'email'
+        ? 'This email is already registered. Please use a different email or log in.'
+        : field === 'phone'
+          ? 'This phone number is already registered. Please log in.'
+          : 'An account with this information already exists.';
+      return errorResponse(res, 400, message);
+    }
     errorResponse(res, 500, 'Registration failed', error.message);
   }
 };
@@ -182,47 +116,46 @@ exports.register = async (req, res) => {
 // @access  Public
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phone, email, password } = req.body;
 
     console.log('===== LOGIN ATTEMPT =====');
-    console.log('Email:', email);
-    console.log('Password provided:', password ? 'Yes' : 'No');
+    console.log('Phone:', phone, '| Email:', email);
 
-    // Validate input
-    if (!email || !password) {
-      console.log('Validation failed: Missing email or password');
-      return errorResponse(res, 400, 'Please provide email and password');
+    // Need either phone or email for login
+    if ((!phone && !email) || !password) {
+      return errorResponse(res, 400, 'Please provide phone/email and password');
     }
 
-    // Find user and include password field
-    const user = await User.findOne({ email }).select('+password');
+    // Find user by phone (primary) or email (fallback)
+    let user;
+    if (phone) {
+      const normalizedPhone = phone.replace(/\D/g, '').slice(-10);
+      user = await User.findOne({ phone: normalizedPhone }).select('+password');
+    } else {
+      user = await User.findOne({ email }).select('+password');
+    }
 
     if (!user) {
-      console.log('User not found for email:', email);
-      return errorResponse(res, 404, 'No account found with this email. Please sign up first.');
+      return errorResponse(res, 404, 'No account found. Please sign up first.');
     }
 
-    console.log('User found:', user.email, '| Role:', user.role, '| Active:', user.isActive, '| Google OAuth:', !!user.googleId);
+    console.log('User found:', user.phone || user.email, '| Role:', user.role);
 
     // Check if user signed up with Google OAuth
     if (user.googleId) {
-      console.log('User signed up with Google OAuth, cannot use email/password login');
-      return errorResponse(res, 400, 'This account was created using Google Sign-In. Please use "Continue with Google" to login.');
+      return errorResponse(res, 400, 'This account was created using Google Sign-In. Please use Google to login.');
     }
 
     // Check if user is active
     if (!user.isActive) {
-      console.log('User account is not active');
       return errorResponse(res, 403, 'Your account has been deactivated');
     }
 
     // Verify password
     const isPasswordCorrect = await user.comparePassword(password);
-    console.log('Password match:', isPasswordCorrect);
 
     if (!isPasswordCorrect) {
-      console.log('Password verification failed');
-      return errorResponse(res, 401, 'Invalid email or password');
+      return errorResponse(res, 401, 'Invalid credentials');
     }
 
     // Generate tokens
@@ -252,11 +185,7 @@ exports.login = async (req, res) => {
 // @access  Private
 exports.logout = async (req, res) => {
   try {
-    // Clear refresh token from database
-    await User.findByIdAndUpdate(req.user._id, {
-      refreshToken: null
-    });
-
+    await User.findByIdAndUpdate(req.user._id, { refreshToken: null });
     successResponse(res, 200, 'Logout successful');
   } catch (error) {
     errorResponse(res, 500, 'Logout failed', error.message);
@@ -281,7 +210,6 @@ exports.refreshToken = async (req, res) => {
       return errorResponse(res, 401, 'Invalid or expired refresh token');
     }
 
-    // Find user with this refresh token
     const user = await User.findOne({
       _id: decoded.id,
       refreshToken: refreshToken
@@ -291,7 +219,6 @@ exports.refreshToken = async (req, res) => {
       return errorResponse(res, 401, 'Invalid refresh token');
     }
 
-    // Generate new access token
     const newAccessToken = generateToken(user._id);
 
     successResponse(res, 200, 'Token refreshed successfully', {
@@ -327,22 +254,17 @@ exports.updatePassword = async (req, res) => {
       return errorResponse(res, 400, 'Please provide current and new password');
     }
 
-    // Get user with password
     const user = await User.findById(req.user._id).select('+password');
-
-    // Verify current password
     const isPasswordCorrect = await user.comparePassword(currentPassword);
 
     if (!isPasswordCorrect) {
       return errorResponse(res, 401, 'Current password is incorrect');
     }
 
-    // Update password
     user.password = newPassword;
     user.passwordChangedAt = Date.now();
     await user.save();
 
-    // Generate new tokens
     const accessToken = generateToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
@@ -358,26 +280,37 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
-// @desc    Reset password with OTP
+// @desc    Reset password with Firebase Phone OTP
 // @route   POST /api/auth/reset-password
 // @access  Public
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { phone, firebaseToken, newPassword } = req.body;
 
-    if (!email || !otp || !newPassword) {
-      return errorResponse(res, 400, 'Email, OTP, and new password are required');
+    if (!phone || !firebaseToken || !newPassword) {
+      return errorResponse(res, 400, 'Phone, Firebase verification, and new password are required');
     }
 
-    // Find user with valid OTP
-    const user = await User.findOne({ 
-      email,
-      otp,
-      otpExpires: { $gt: Date.now() }
-    }).select('+password');
+    // Verify Firebase ID token
+    const decoded = await verifyFirebaseToken(firebaseToken);
+    if (!decoded) {
+      return errorResponse(res, 401, 'Phone verification failed. Please try again.');
+    }
+
+    // Extract phone from Firebase token and compare
+    const firebasePhone = decoded.phone_number;
+    const normalizedPhone = phone.replace(/\D/g, '').slice(-10);
+    const firebaseNormalized = firebasePhone ? firebasePhone.replace(/\D/g, '').slice(-10) : '';
+
+    if (normalizedPhone !== firebaseNormalized) {
+      return errorResponse(res, 400, 'Phone number mismatch.');
+    }
+
+    // Find user by phone
+    const user = await User.findOne({ phone: normalizedPhone }).select('+password');
 
     if (!user) {
-      return errorResponse(res, 400, 'Invalid or expired OTP');
+      return errorResponse(res, 404, 'No account found with this phone number');
     }
 
     // Update password
@@ -388,71 +321,52 @@ exports.resetPassword = async (req, res) => {
     user.refreshToken = null; // Invalidate all sessions
     await user.save();
 
-    // Send success response immediately
     successResponse(res, 200, 'Password reset successful. Please login with your new password.');
 
-    // Send success email in background (don't await)
-    sendPasswordResetSuccessEmail(email, user.name)
-      .catch(err => console.error('Background password reset email failed:', err.message));
+    // Send success email in background if email exists
+    if (user.email) {
+      sendPasswordResetSuccessEmail(user.email, user.name)
+        .catch(err => console.error('Background password reset email failed:', err.message));
+    }
 
   } catch (error) {
     errorResponse(res, 500, 'Password reset failed', error.message);
   }
 };
 
-// @desc    Google OAuth callback
+// LEGACY: Keep sendOTP and verifyOTP for backward compatibility but they are no longer primary
+exports.sendOTP = async (req, res) => {
+  return errorResponse(res, 410, 'Email OTP is no longer supported. Please use Firebase Phone OTP.');
+};
+
+exports.verifyOTP = async (req, res) => {
+  return errorResponse(res, 410, 'Email OTP is no longer supported. Please use Firebase Phone OTP.');
+};
+
+// @desc    Google OAuth callback (kept for future use)
 // @route   GET /api/auth/google/callback
 // @access  Public
 exports.googleAuth = async (req, res) => {
   try {
-    console.log('📱 Google OAuth callback triggered');
-    
-    // Check if authentication failed
     if (!req.user) {
-      console.error('❌ No user in request');
       const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3001';
-      return res.redirect(`${frontendURL}/login?error=${encodeURIComponent('Authentication failed. Please try again.')}`);
+      return res.redirect(`${frontendURL}/login?error=${encodeURIComponent('Authentication failed.')}`);
     }
 
-    // This will be handled by passport middleware
-    // User will be attached to req.user by passport
     const user = req.user;
-    console.log('✅ User authenticated:', user.email);
-
-    // Generate tokens
     const accessToken = generateToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
-    console.log('🔑 Tokens generated for user:', user.email);
 
-    // Save refresh token
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
-    // Remove sensitive fields
     user.password = undefined;
     user.refreshToken = undefined;
 
-    // Redirect to frontend with tokens
     const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3001';
-    const redirectURL = `${frontendURL}/auth/google/success?token=${accessToken}&refresh=${refreshToken}`;
-    console.log('🔄 Redirecting to:', redirectURL);
-    res.redirect(redirectURL);
+    res.redirect(`${frontendURL}/auth/google/success?token=${accessToken}&refresh=${refreshToken}`);
   } catch (error) {
-    console.error('❌ Google OAuth error in controller:', error);
     const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3001';
-    
-    // Handle specific error types
-    let errorMessage = 'Authentication failed. Please try again.';
-    
-    if (error.code === 11000) {
-      // Duplicate key error
-      if (error.keyPattern && error.keyPattern.phone) {
-        errorMessage = 'This phone number is already registered. Please login with your existing account or use a different phone number.';
-      } else if (error.keyPattern && error.keyPattern.email) {
-        errorMessage = 'This email is already registered. Please login with your existing account.';
-      }
-    }
-    
-    res.redirect(`${frontendURL}/login?error=${encodeURIComponent(errorMessage)}`);
+    res.redirect(`${frontendURL}/login?error=${encodeURIComponent('Authentication failed.')}`);
   }
 };

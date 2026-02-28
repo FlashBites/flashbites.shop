@@ -62,7 +62,7 @@ GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 
 # Email - Mailtrap
 MAILTRAP_API_TOKEN=your_mailtrap_api_token
-MAILTRAP_FROM_EMAIL=hello@flashbites.shop
+MAILTRAP_FROM_EMAIL=hello@flashbites.in
 MAILTRAP_FROM_NAME=FlashBites
 
 # Google OAuth
@@ -74,7 +74,7 @@ SESSION_SECRET=your_session_secret_min_32_chars
 
 # URLs
 BACKEND_URL=https://flashbites-backend.onrender.com
-FRONTEND_URL=https://flashbites.shop
+FRONTEND_URL=https://flashbites.in
 
 # Push Notifications
 VAPID_PUBLIC_KEY=your_vapid_public_key
@@ -148,9 +148,9 @@ Expected response:
 - Real-time logs for debugging
 
 ### Custom Domain (Optional)
-If you want `api.flashbites.shop`:
+If you want `api.flashbites.in`:
 1. Service → **Settings** → **Custom Domain**
-2. Add: `api.flashbites.shop`
+2. Add: `api.flashbites.in`
 3. Add CNAME record in your DNS:
    ```
    CNAME api flashbites-backend.onrender.com

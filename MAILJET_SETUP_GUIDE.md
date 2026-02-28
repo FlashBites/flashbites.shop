@@ -38,14 +38,14 @@ Secret Key: 9z8y7x6w5v4u3t2s1r0q9p8o7n6m5l4k
 ```
 MAILJET_API_KEY=1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p
 MAILJET_SECRET_KEY=9z8y7x6w5v4u3t2s1r0q9p8o7n6m5l4k
-MAILJET_FROM_EMAIL=noreply@flashbites.shop
+MAILJET_FROM_EMAIL=noreply@flashbites.in
 ```
 
 ### Step 4: Update .env Locally
 ```bash
 MAILJET_API_KEY=1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p
 MAILJET_SECRET_KEY=9z8y7x6w5v4u3t2s1r0q9p8o7n6m5l4k
-MAILJET_FROM_EMAIL=noreply@flashbites.shop
+MAILJET_FROM_EMAIL=noreply@flashbites.in
 ```
 
 ### Step 5: Test It!
@@ -72,7 +72,7 @@ Add these to Railway:
 # Mailjet Configuration (REQUIRED)
 MAILJET_API_KEY=your_api_key_here
 MAILJET_SECRET_KEY=your_secret_key_here
-MAILJET_FROM_EMAIL=noreply@flashbites.shop
+MAILJET_FROM_EMAIL=noreply@flashbites.in
 
 # Other required variables (if not already set)
 NODE_ENV=production
@@ -80,7 +80,7 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 JWT_REFRESH_SECRET=your_refresh_secret
 BACKEND_URL=https://flashbites-backend.up.railway.app
-FRONTEND_URL=https://flashbites.shop
+FRONTEND_URL=https://flashbites.in
 
 # VAPID Keys for Push Notifications
 VAPID_PUBLIC_KEY=BLtMIszEVonY2KW3DxIWZMgYPx_Myj8Zx4UYTd1ZcgvqD7f5d7EJpTx2gLFfmwXuEPjGKCPWRLFFrHGYK3n6T18
@@ -105,7 +105,7 @@ VAPID_PRIVATE_KEY=weaou9AD6rcRzOv9k6dIYVIgP-cm2HTE0gtiEGcFtwA
 ```bash
 MAILJET_API_KEY=your_api_key
 MAILJET_SECRET_KEY=your_secret_key
-MAILJET_FROM_EMAIL=noreply@flashbites.shop
+MAILJET_FROM_EMAIL=noreply@flashbites.in
 ```
 
 2. Run test script:

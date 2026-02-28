@@ -16,7 +16,7 @@ const sendTestEmail = async () => {
     },
     body: JSON.stringify({
       from: {
-        email: process.env.MAILTRAP_FROM_EMAIL || 'hello@flashbites.shop',
+        email: process.env.MAILTRAP_FROM_EMAIL || 'hello@flashbites.in',
         name: process.env.MAILTRAP_FROM_NAME || 'FlashBites'
       },
       to: [{ email: testEmail }],

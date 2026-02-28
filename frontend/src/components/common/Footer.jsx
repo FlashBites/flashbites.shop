@@ -1,5 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import logo from '../../assets/logo.png';
+
+const BRAND = '#FF523B';
 
 const Footer = () => {
   return (
@@ -8,7 +11,14 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-white text-lg font-bold mb-4">FlashBites</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <img
+                src={logo}
+                alt="FlashBites"
+                className="h-10 w-auto object-contain"
+                style={{ filter: 'brightness(1.1)' }}
+              />
+            </div>
             <p className="text-sm text-gray-400 mb-4">
               Your favorite food delivered fast. Order from the best restaurants in town.
             </p>
@@ -25,7 +35,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a 
-                href="https://www.instagram.com/flashbites.shop/" 
+                href="https://www.instagram.com/flashbites.in/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition"
@@ -83,7 +93,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link to="/terms" className="hover:text-white transition">
-                  Terms & Conditions
+                  Terms &amp; Conditions
                 </Link>
               </li>
               <li>
@@ -96,7 +106,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-800 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} FlashBites. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} FlashBites. All rights reserved. | <a href="https://flashbites.in" className="hover:text-white transition">flashbites.in</a></p>
         </div>
       </div>
     </footer>

@@ -5,6 +5,7 @@ import { clearError } from '../redux/slices/authSlice';
 import toast from 'react-hot-toast';
 import { validateEmail, validatePhone, validatePassword } from '../utils/validators';
 import axios from '../api/axios';
+import { setupRecaptcha, sendPhoneOTP, verifyPhoneOTP } from '../firebase';
 import logo from '../assets/logo.png';
 
 const Register = () => {
@@ -115,37 +116,18 @@ const Register = () => {
 
     setLoading(true);
     try {
-      console.log('Sending OTP request with:', { 
-        email: formData.email, 
-        purpose: 'registration' 
-      });
-
-      const response = await axios.post('/auth/send-otp', {
-        email: formData.email,
-        purpose: 'registration'
-      });
-
-      console.log('OTP Response:', response.data);
-      toast.success(response.data.message || 'OTP sent to your email');
+      setupRecaptcha();
+      const phoneWithCode = `+91${formData.phone}`;
+      await sendPhoneOTP(phoneWithCode);
+      toast.success('OTP sent to your phone number');
       setStep(2);
     } catch (error) {
-      console.error('OTP Error Details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: error.config
-      });
-
-      const errorMessage = error.response?.data?.message 
-        || error.response?.data?.error
-        || error.message 
-        || 'Failed to send OTP. Please check your connection.';
-      
-      toast.error(errorMessage);
-
-      // Network error check
-      if (!error.response) {
-        toast.error('Network error. Please check if backend server is running.');
+      if (error.code === 'auth/too-many-requests') {
+        toast.error('Too many attempts. Please try again later.');
+      } else if (error.code === 'auth/invalid-phone-number') {
+        toast.error('Invalid phone number format');
+      } else {
+        toast.error(error.message || 'Failed to send OTP');
       }
     } finally {
       setLoading(false);
@@ -162,7 +144,9 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const { confirmPassword, ...dataToSend } = formData;
+      const firebaseToken = await verifyPhoneOTP(formData.otp);
+      const { confirmPassword, otp, ...dataToSend } = formData;
+      dataToSend.firebaseToken = firebaseToken;
       const response = await axios.post('/auth/register', dataToSend);
 
       // Store tokens and user data
@@ -183,6 +167,11 @@ const Register = () => {
         }
       }, 1000);
     } catch (error) {
+      if (error.code?.startsWith('auth/')) {
+        toast.error('Invalid OTP. Please try again.');
+        return;
+      }
+
       const errorMessage = error.response?.data?.message || 'Registration failed';
       toast.error(errorMessage);
       
@@ -213,21 +202,12 @@ const Register = () => {
   const handleResendOTP = async () => {
     setLoading(true);
     try {
-      await axios.post('/auth/send-otp', {
-        email: formData.email,
-        purpose: 'registration'
-      });
-      toast.success('OTP resent to your email');
+      setupRecaptcha();
+      const phoneWithCode = `+91${formData.phone}`;
+      await sendPhoneOTP(phoneWithCode);
+      toast.success('OTP resent to your phone');
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to resend OTP';
-      toast.error(errorMessage);
-      
-      // If email already fully registered, redirect to login
-      if (errorMessage.includes('already registered')) {
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-      }
+      toast.error(error.message || 'Failed to resend OTP');
     } finally {
       setLoading(false);
     }
@@ -492,12 +472,15 @@ const Register = () => {
           </div>
 
           {/* Login Link */}
-          <div className="text-center text-gray-600 text-xs sm:text-sm pb-6 sm:pb-8">
-            Already have an account? <Link to="/login" className="text-orange-500 font-semibold">Log In</Link>
-          </div>
+        <div className="text-center text-gray-600 text-xs sm:text-sm pb-6 sm:pb-8">
+          Already have an account? <Link to="/login" className="text-orange-500 font-semibold">Log In</Link>
         </div>
       </div>
-    );
+
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
+    </div>
+  );
   }
 
   // Step 2: OTP Verification
@@ -524,8 +507,8 @@ const Register = () => {
 
         {/* Title */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Verify Email</h1>
-          <p className="text-gray-500 text-sm">Enter the OTP sent to {formData.email}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Verify Phone</h1>
+          <p className="text-gray-500 text-sm">Enter the OTP sent to +91 {formData.phone}</p>
         </div>
 
         {/* OTP Form */}
@@ -565,6 +548,9 @@ const Register = () => {
           </div>
         </form>
       </div>
+
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
     </div>
   );
 };

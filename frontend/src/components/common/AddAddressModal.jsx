@@ -28,7 +28,12 @@ const AddAddressModal = ({ isOpen, onClose, onAddressAdded }) => {
     try {
       const response = await addAddress(formData);
       toast.success('Address added successfully');
-      onAddressAdded(response.data.address);
+      const normalizedAddress =
+        response?.data?.address ||
+        response?.address ||
+        response?.data ||
+        null;
+      onAddressAdded(normalizedAddress);
       onClose();
       // Reset form
       setFormData({

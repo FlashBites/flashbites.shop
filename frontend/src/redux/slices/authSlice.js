@@ -72,17 +72,22 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      // Clear tokens from Preferences
       Preferences.remove({ key: 'token' });
       Preferences.remove({ key: 'accessToken' });
       Preferences.remove({ key: 'refreshToken' });
-      
-      // Clear tokens from synchronous Web Storage
       localStorage.removeItem('token');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
     },
     clearError: (state) => {
+      state.error = null;
+    },
+    // Used after registration/Google auth to immediately set auth state in Redux
+    setAuthUser: (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+      state.loading = false;
       state.error = null;
     },
   },
@@ -127,6 +132,10 @@ const authSlice = createSlice({
       // Get current user
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.user = action.payload.user;
+        // Mark as authenticated whenever we successfully fetch the user
+        if (action.payload.user) {
+          state.isAuthenticated = true;
+        }
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         // Silently fail if user fetch fails - they're still logged in
@@ -139,5 +148,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, setAuthUser } = authSlice.actions;
 export default authSlice.reducer;

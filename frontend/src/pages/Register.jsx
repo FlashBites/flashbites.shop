@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearError } from '../redux/slices/authSlice';
+import { clearError, setAuthUser } from '../redux/slices/authSlice';
 import toast from 'react-hot-toast';
 import { validatePhone, validatePassword } from '../utils/validators';
 import axios from '../api/axios';
@@ -117,18 +117,22 @@ const Register = () => {
         firebaseToken,
       });
 
-      // Store tokens and user data
+      // Destructure tokens and user data from the response
       const { accessToken, refreshToken, user: userData } = response.data.data;
+
+      // Store tokens in both keys for compatibility
+      localStorage.setItem('token', accessToken);
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
 
-      toast.success('Registration successful!');
+      // Immediately update Redux auth state — user is now logged in
+      dispatch(setAuthUser({ user: userData, token: accessToken }));
+
+      toast.success('Welcome to FlashBites! 🎉');
 
       // Redirect based on role
-      setTimeout(() => {
-        const roleMap = { restaurant_owner: '/dashboard', delivery_partner: '/delivery-dashboard' };
-        navigate(roleMap[userData.role] || '/');
-      }, 1000);
+      const roleMap = { restaurant_owner: '/dashboard', delivery_partner: '/delivery-dashboard' };
+      navigate(roleMap[userData.role] || '/');
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
       toast.error(errorMessage);

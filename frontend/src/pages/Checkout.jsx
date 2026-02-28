@@ -26,6 +26,7 @@ const LS_KEYS = {
   upi: 'payment_methods_manual_upi',
   option: 'payment_methods_selected_option',
 };
+const CART_SELECTED_ADDRESS_KEY = 'cart_selected_address_id';
 
 const loadStored = (key, fallback) => {
   try {
@@ -86,25 +87,70 @@ const Checkout = () => {
     setPaymentMethod('card');
   }, []);
 
-  const fetchAddresses = async () => {
+  const fetchAddresses = async (preferredAddressId = null, preferLatest = false) => {
     try {
       const response = await getAddresses();
-      setAddresses(response.data.addresses);
-      
-      const defaultAddr = response.data.addresses.find(addr => addr.isDefault);
+      const fetchedAddresses = response.data.addresses || [];
+      setAddresses(fetchedAddresses);
+
+      if (fetchedAddresses.length === 0) {
+        setSelectedAddress(null);
+        return;
+      }
+
+      if (preferredAddressId) {
+        const preferred = fetchedAddresses.find((addr) => addr._id === preferredAddressId);
+        if (preferred) {
+          setSelectedAddress(preferred._id);
+          return;
+        }
+      }
+
+      const cartSelectedId = localStorage.getItem(CART_SELECTED_ADDRESS_KEY);
+      if (cartSelectedId) {
+        const fromCart = fetchedAddresses.find((addr) => addr._id === cartSelectedId);
+        if (fromCart) {
+          setSelectedAddress(fromCart._id);
+          return;
+        }
+      }
+
+      const defaultAddr = fetchedAddresses.find((addr) => addr.isDefault);
       if (defaultAddr) {
         setSelectedAddress(defaultAddr._id);
+        return;
       }
+
+      if (preferLatest) {
+        setSelectedAddress(fetchedAddresses[fetchedAddresses.length - 1]._id);
+        return;
+      }
+
+      setSelectedAddress(fetchedAddresses[0]._id);
     } catch (error) {
       toast.error('Failed to load addresses');
     }
   };
 
-  const handleAddressAdded = (newAddress) => {
-    setAddresses([...addresses, newAddress]);
-    setSelectedAddress(newAddress._id);
+  const handleAddressAdded = async (newAddress) => {
+    const newAddressId = newAddress?._id || newAddress?.id || null;
+
+    if (newAddressId) {
+      setAddresses((prev) => {
+        const existingIndex = prev.findIndex((addr) => addr._id === newAddressId);
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = { ...updated[existingIndex], ...newAddress, _id: newAddressId };
+          return updated;
+        }
+        return [...prev, { ...newAddress, _id: newAddressId }];
+      });
+      setSelectedAddress(newAddressId);
+    }
+
+    await fetchAddresses(newAddressId, true);
     setShowAddAddressModal(false);
-    toast.success('Address added successfully!');
+    toast.success('Address updated successfully!');
   };
 
   // Calculate distance when address or restaurant changes
@@ -120,11 +166,17 @@ const Checkout = () => {
     }
   }, [selectedAddress, restaurant, addresses]);
 
+  useEffect(() => {
+    if (!selectedAddress) return;
+    localStorage.setItem(CART_SELECTED_ADDRESS_KEY, selectedAddress);
+  }, [selectedAddress]);
+
   const subtotal = calculateCartTotal(items);
   const deliveryFee = deliveryDistance > 0 ? calculateDeliveryCharge(deliveryDistance) : 30; // Default ₹30
   const discount = appliedCoupon?.discount || 0;
   const tax = (subtotal - discount) * 0.05;
   const total = subtotal + deliveryFee + tax - discount;
+  const selectedAddressData = addresses.find((address) => address._id === selectedAddress) || null;
 
   const paymentOptions = useMemo(() => {
     const options = [];
@@ -363,15 +415,9 @@ const Checkout = () => {
           <section>
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-[12px] font-semibold text-slate-500 uppercase tracking-[0.1em]">Delivery Address</h2>
-              <button
-                onClick={() => setShowAddAddressModal(true)}
-                className="text-[13px] font-semibold text-orange-500"
-              >
-                Change
-              </button>
             </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-4">
-              {addresses.length === 0 ? (
+            {addresses.length === 0 ? (
+              <div className="rounded-3xl border border-slate-200 bg-white p-4">
                 <div className="text-center py-4">
                   <p className="text-sm text-slate-500 mb-3">No saved addresses</p>
                   <button
@@ -381,50 +427,33 @@ const Checkout = () => {
                     Add Address
                   </button>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {addresses.map((address) => (
-                    <label
-                      key={address._id}
-                      className={`block rounded-2xl border px-3 py-3 cursor-pointer transition ${
-                        selectedAddress === address._id ? 'border-orange-300 bg-orange-50/40' : 'border-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <input
-                          type="radio"
-                          name="address"
-                          value={address._id}
-                          checked={selectedAddress === address._id}
-                          onChange={() => setSelectedAddress(address._id)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[16px] font-semibold text-slate-900 capitalize">{address.type}</p>
-                          <p className="text-[13px] text-slate-500 leading-5">
-                            {address.street}, {address.city}, {address.state} {address.zipCode}
-                          </p>
-                          {selectedAddress === address._id && (
-                            <p className="mt-1 text-[12px] text-slate-400">Est. Delivery: 25 - 35 mins</p>
-                          )}
-                        </div>
-                      </div>
-                    </label>
-                  ))}
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-orange-300 bg-orange-50/40 p-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[16px] font-semibold text-slate-900 capitalize">
+                    {selectedAddressData?.type || 'Home'}
+                  </p>
+                  <p className="text-[13px] text-slate-500 leading-5">
+                    {selectedAddressData
+                      ? `${selectedAddressData.street}, ${selectedAddressData.city}, ${selectedAddressData.state} ${selectedAddressData.zipCode}`
+                      : 'Selected address unavailable'}
+                  </p>
+                  <p className="mt-1 text-[12px] text-slate-400">Est. Delivery: 25 - 35 mins</p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </section>
 
           <section>
             <h2 className="text-[12px] font-semibold text-slate-500 uppercase tracking-[0.1em] mb-2">Order Summary</h2>
             <div className="rounded-3xl border border-slate-200 bg-white p-4">
-              <div className="space-y-3">
+              <div className="space-y-5">
                 {items.map((item) => (
-                  <div key={item._id} className="flex items-center justify-between gap-2">
+                  <div key={item._id} className="flex items-center justify-between gap-4 py-1">
                     <div className="min-w-0">
                       <p className="text-[15px] font-semibold text-slate-900 truncate">{item.name}</p>
-                      <p className="text-[13px] text-slate-500">Quantity: {item.quantity}</p>
+                      <p className="text-[13px] text-slate-500 mt-1">Quantity: {item.quantity}</p>
                     </div>
                     <p className="text-[16px] font-semibold text-slate-800 shrink-0">
                       {formatCurrency((Number(item.price) || 0) * (item.quantity || 1))}

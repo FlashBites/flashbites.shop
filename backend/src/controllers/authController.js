@@ -3,47 +3,86 @@ const User = require('../models/User');
 const { generateToken, generateRefreshToken } = require('../utils/tokenUtils');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
 const { verifyFirebaseToken } = require('../config/firebaseAdmin');
-const { sendWelcomeEmail, sendPasswordResetSuccessEmail } = require('../utils/emailService');
+const { generateOTP, sendOTPEmail, sendWelcomeEmail, sendPasswordResetSuccessEmail } = require('../utils/emailService');
+
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
+
+const generateTempPhone = async () => {
+  for (let i = 0; i < 8; i += 1) {
+    const candidate = `9${Math.floor(100000000 + Math.random() * 900000000)}`;
+    const exists = await User.findOne({ phone: candidate }).lean();
+    if (!exists) return candidate;
+  }
+  throw new Error('Could not allocate temporary phone number');
+};
 
 // @desc    Register new user (with Firebase Phone OTP verification)
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { name, phone, password, role, email, firebaseToken } = req.body;
+    const { name, phone, password, role, email, firebaseToken, otp } = req.body;
+    const normalizedPhone = phone ? phone.replace(/\D/g, '').slice(-10) : '';
+    const normalizedEmail = email ? email.trim().toLowerCase() : null;
 
     // Validate required fields
-    if (!name || !phone || !password || !firebaseToken) {
-      return errorResponse(res, 400, 'Name, phone, password, and Firebase verification are required');
+    if (!name || !phone || !password) {
+      return errorResponse(res, 400, 'Name, phone, and password are required');
     }
-
-    // Verify Firebase ID token
-    const decoded = await verifyFirebaseToken(firebaseToken);
-    if (!decoded) {
-      return errorResponse(res, 401, 'Phone verification failed. Please try again.');
-    }
-
-    // Extract phone from Firebase token and compare
-    const firebasePhone = decoded.phone_number; // e.g. "+911234567890"
-    const normalizedPhone = phone.replace(/\D/g, '').slice(-10); // last 10 digits
-    const firebaseNormalized = firebasePhone ? firebasePhone.replace(/\D/g, '').slice(-10) : '';
-
-    if (normalizedPhone !== firebaseNormalized) {
-      return errorResponse(res, 400, 'Phone number mismatch. The OTP was sent to a different number.');
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ phone: normalizedPhone }).select('+password');
-    if (existingUser && existingUser.isPhoneVerified && existingUser.password) {
-      return errorResponse(res, 400, 'Phone number already registered. Please login.');
-    }
-
-
 
     // Validate role
     const validRoles = ['user', 'restaurant_owner', 'delivery_partner'];
     if (role && !validRoles.includes(role)) {
       return errorResponse(res, 400, 'Invalid role specified');
+    }
+
+    if (!normalizedPhone || normalizedPhone.length !== 10) {
+      return errorResponse(res, 400, 'Please provide a valid 10-digit phone number');
+    }
+
+    let existingUser = await User.findOne({ phone: normalizedPhone }).select('+password');
+    let otpUser = null;
+
+    if (firebaseToken) {
+      // Firebase Phone OTP path (primary)
+      const decoded = await verifyFirebaseToken(firebaseToken);
+      if (!decoded) {
+        return errorResponse(res, 401, 'Phone verification failed. Please try again.');
+      }
+
+      const firebasePhone = decoded.phone_number; // e.g. "+911234567890"
+      const firebaseNormalized = firebasePhone ? firebasePhone.replace(/\D/g, '').slice(-10) : '';
+      if (normalizedPhone !== firebaseNormalized) {
+        return errorResponse(res, 400, 'Phone number mismatch. The OTP was sent to a different number.');
+      }
+    } else {
+      // Legacy Email OTP path (for existing UI compatibility)
+      if (!normalizedEmail || !EMAIL_REGEX.test(normalizedEmail)) {
+        return errorResponse(res, 400, 'Valid email is required for OTP verification');
+      }
+      if (!otp || otp.length !== 6) {
+        return errorResponse(res, 400, 'Valid 6-digit OTP is required');
+      }
+
+      otpUser = await User.findOne({
+        email: normalizedEmail,
+        otp,
+        otpExpires: { $gt: new Date() }
+      }).select('+password');
+
+      if (!otpUser) {
+        return errorResponse(res, 400, 'Invalid or expired OTP');
+      }
+
+      if (existingUser && String(existingUser._id) !== String(otpUser._id) && existingUser.isPhoneVerified && existingUser.password) {
+        return errorResponse(res, 400, 'Phone number already registered. Please login.');
+      }
+
+      existingUser = otpUser;
+    }
+
+    if (existingUser && existingUser.isPhoneVerified && existingUser.password && (!otpUser || String(existingUser._id) !== String(otpUser._id))) {
+      return errorResponse(res, 400, 'Phone number already registered. Please login.');
     }
 
     let user;
@@ -52,8 +91,9 @@ exports.register = async (req, res) => {
       existingUser.name = name;
       existingUser.password = password;
       existingUser.phone = normalizedPhone;
-      existingUser.email = email || null;
+      existingUser.email = normalizedEmail || null;
       existingUser.role = role || 'user';
+      existingUser.isEmailVerified = !!normalizedEmail;
       existingUser.isPhoneVerified = true;
       existingUser.otp = null;
       existingUser.otpExpires = null;
@@ -65,8 +105,9 @@ exports.register = async (req, res) => {
         name,
         phone: normalizedPhone,
         password,
-        email: email || null,
+        email: normalizedEmail || null,
         role: role || 'user',
+        isEmailVerified: !!normalizedEmail,
         isPhoneVerified: true,
       });
     }
@@ -90,8 +131,8 @@ exports.register = async (req, res) => {
     });
 
     // Send welcome email in background if email provided
-    if (email) {
-      sendWelcomeEmail(email, name)
+    if (normalizedEmail) {
+      sendWelcomeEmail(normalizedEmail, name)
         .catch(err => console.error('Background welcome email failed:', err.message));
     }
 
@@ -334,13 +375,79 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// LEGACY: Keep sendOTP and verifyOTP for backward compatibility but they are no longer primary
+// LEGACY: Keep sendOTP and verifyOTP for backward compatibility with existing UI flow
 exports.sendOTP = async (req, res) => {
-  return errorResponse(res, 410, 'Email OTP is no longer supported. Please use Firebase Phone OTP.');
+  try {
+    const { email, purpose = 'registration' } = req.body;
+    const normalizedEmail = email ? email.trim().toLowerCase() : '';
+
+    if (!normalizedEmail || !EMAIL_REGEX.test(normalizedEmail)) {
+      return errorResponse(res, 400, 'Please provide a valid email');
+    }
+
+    let user = await User.findOne({ email: normalizedEmail }).select('+password');
+
+    if (purpose === 'registration' && user && user.isEmailVerified && user.isPhoneVerified && user.password) {
+      return errorResponse(res, 400, 'This email is already registered. Please login.');
+    }
+
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    if (!user) {
+      const tempPhone = await generateTempPhone();
+      user = await User.create({
+        name: 'Temp User',
+        email: normalizedEmail,
+        phone: tempPhone,
+        password: 'temp123',
+        role: 'user',
+        isEmailVerified: false,
+        isPhoneVerified: false,
+        otp,
+        otpExpires
+      });
+    } else {
+      user.otp = otp;
+      user.otpExpires = otpExpires;
+      await user.save({ validateBeforeSave: false });
+    }
+
+    await sendOTPEmail(normalizedEmail, otp, purpose);
+    return successResponse(res, 200, 'OTP sent to your email');
+  } catch (error) {
+    return errorResponse(res, 500, 'Failed to send OTP', error.message);
+  }
 };
 
 exports.verifyOTP = async (req, res) => {
-  return errorResponse(res, 410, 'Email OTP is no longer supported. Please use Firebase Phone OTP.');
+  try {
+    const { email, otp } = req.body;
+    const normalizedEmail = email ? email.trim().toLowerCase() : '';
+
+    if (!normalizedEmail || !EMAIL_REGEX.test(normalizedEmail) || !otp) {
+      return errorResponse(res, 400, 'Email and OTP are required');
+    }
+
+    const user = await User.findOne({
+      email: normalizedEmail,
+      otp,
+      otpExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return errorResponse(res, 400, 'Invalid or expired OTP');
+    }
+
+    user.isEmailVerified = true;
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save({ validateBeforeSave: false });
+
+    return successResponse(res, 200, 'OTP verified successfully');
+  } catch (error) {
+    return errorResponse(res, 500, 'OTP verification failed', error.message);
+  }
 };
 
 // @desc    Google OAuth callback (kept for future use)

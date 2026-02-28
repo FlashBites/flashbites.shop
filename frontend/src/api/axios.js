@@ -71,19 +71,23 @@ instance.interceptors.response.use(
     }
 
     if (status === 401) {
+      // Routes that require authentication — redirect to login on 401
+      const protectedRoutes = ['/checkout', '/orders', '/profile', '/auth/logout', '/notifications', '/users/addresses'];
+      const isProtectedRequest = protectedRoutes.some(route => url.includes(route));
+
+      // Clear tokens on 401 regardless
       if (isCapacitor) {
-        // Clear Capacitor Preferences
         await Preferences.remove({ key: 'token' });
         await Preferences.remove({ key: 'accessToken' });
         await Preferences.remove({ key: 'refreshToken' });
       } else {
-        // Clear localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
       }
-      // Only redirect if not already on login page
-      if (!window.location.pathname.includes('/login')) {
+
+      // Only redirect to login for protected actions — NOT for routine /auth/me checks or public browsing
+      if (isProtectedRequest && !window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
     }

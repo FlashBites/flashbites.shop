@@ -12,14 +12,29 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+let app = null;
+let auth = null;
+
+const ensureFirebaseAuth = () => {
+  if (auth) return auth;
+
+  // Avoid crashing the whole app if Firebase env vars are missing/invalid.
+  if (!firebaseConfig.apiKey) {
+    throw new Error("Firebase API key missing. Set VITE_FIREBASE_API_KEY in frontend .env.");
+  }
+
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  return auth;
+};
 
 /**
  * Setup invisible reCAPTCHA verifier.
  * Call this before sending OTP. The #recaptcha-container element must exist in the DOM.
  */
 export const setupRecaptcha = () => {
+  const firebaseAuth = ensureFirebaseAuth();
+
   // Clear existing verifier to avoid conflicts on re-renders
   if (window.recaptchaVerifier) {
     try { window.recaptchaVerifier.clear(); } catch (e) { /* ignore */ }
@@ -27,7 +42,7 @@ export const setupRecaptcha = () => {
   }
 
   window.recaptchaVerifier = new RecaptchaVerifier(
-    auth,
+    firebaseAuth,
     "recaptcha-container",
     {
       size: "invisible",
@@ -49,13 +64,14 @@ export const setupRecaptcha = () => {
  * @param {string} phoneNumber - e.g. "+911234567890"
  */
 export const sendPhoneOTP = async (phoneNumber) => {
+  const firebaseAuth = ensureFirebaseAuth();
   const appVerifier = window.recaptchaVerifier;
   if (!appVerifier) {
     throw new Error('reCAPTCHA not initialized. Call setupRecaptcha() first.');
   }
 
   try {
-    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+    const confirmationResult = await signInWithPhoneNumber(firebaseAuth, phoneNumber, appVerifier);
     window.confirmationResult = confirmationResult;
     return confirmationResult;
   } catch (error) {

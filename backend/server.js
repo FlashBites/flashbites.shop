@@ -76,8 +76,8 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://flashbites.vercel.app',
-  'https://flashbites.shop',
-  'https://www.flashbites.shop',
+  'https://flashbites.in',
+  'https://www.flashbites.in',
   // Capacitor iOS/Android origins
   'capacitor://localhost',
   'ionic://localhost',

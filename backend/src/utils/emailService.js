@@ -10,7 +10,7 @@ const sendMailtrapAPI = async (to, subject, html, text = '') => {
     },
     body: JSON.stringify({
       from: {
-        email: process.env.MAILTRAP_FROM_EMAIL || 'hello@flashbites.shop',
+        email: process.env.MAILTRAP_FROM_EMAIL || 'hello@flashbites.in',
         name: process.env.MAILTRAP_FROM_NAME || 'FlashBites'
       },
       to: [{ email: to }],
@@ -100,7 +100,7 @@ const sendOTPEmail = async (email, otp, purpose = 'verification') => {
     }
 
     const mailOptions = {
-      from: process.env.MAILTRAP_FROM_EMAIL || 'FlashBites <noreply@flashbites.shop>',
+      from: process.env.MAILTRAP_FROM_EMAIL || 'FlashBites <noreply@flashbites.in>',
       to: email,
       subject: subject,
       html: htmlContent
@@ -130,7 +130,7 @@ const sendWelcomeEmail = async (email, name) => {
           <p style="color: #666; font-size: 16px;">Thank you for joining FlashBites. We're excited to have you on board!</p>
           <p style="color: #666; font-size: 16px;">Start exploring delicious food from the best restaurants near you.</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://flashbites.shop" 
+            <a href="https://flashbites.in" 
                style="background-color: #f97316; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
               Start Ordering
             </a>
@@ -154,7 +154,7 @@ const sendWelcomeEmail = async (email, name) => {
     }
 
     const mailOptions = {
-      from: process.env.MAILTRAP_FROM_EMAIL || 'FlashBites <noreply@flashbites.shop>',
+      from: process.env.MAILTRAP_FROM_EMAIL || 'FlashBites <noreply@flashbites.in>',
       to: email,
       subject: 'Welcome to FlashBites!',
       html: htmlContent
@@ -200,7 +200,7 @@ const sendPasswordResetSuccessEmail = async (email, name) => {
     }
 
     const mailOptions = {
-      from: process.env.MAILTRAP_FROM_EMAIL || 'FlashBites <noreply@flashbites.shop>',
+      from: process.env.MAILTRAP_FROM_EMAIL || 'FlashBites <noreply@flashbites.in>',
       to: email,
       subject: 'Password Reset Successful',
       html: htmlContent

@@ -6,7 +6,7 @@ console.log('🔍 Testing Mailjet Configuration...\n');
 // Check environment variables
 console.log('MAILJET_API_KEY:', process.env.MAILJET_API_KEY ? '✅ Set' : '❌ Missing');
 console.log('MAILJET_SECRET_KEY:', process.env.MAILJET_SECRET_KEY ? '✅ Set' : '❌ Missing');
-console.log('MAILJET_FROM_EMAIL:', process.env.MAILJET_FROM_EMAIL || 'noreply@flashbites.shop');
+console.log('MAILJET_FROM_EMAIL:', process.env.MAILJET_FROM_EMAIL || 'noreply@flashbites.in');
 console.log('');
 
 if (!process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
@@ -41,7 +41,7 @@ console.log(`🔐 OTP: ${otp}\n`);
       Messages: [
         {
           From: {
-            Email: process.env.MAILJET_FROM_EMAIL || 'noreply@flashbites.shop',
+            Email: process.env.MAILJET_FROM_EMAIL || 'noreply@flashbites.in',
             Name: 'FlashBites'
           },
           To: [
@@ -62,7 +62,7 @@ console.log(`🔐 OTP: ${otp}\n`);
                   <span style="font-size: 32px; font-weight: bold; color: #f97316; letter-spacing: 5px;">${otp}</span>
                 </div>
                 <p style="color: #999; font-size: 14px;">This is a test email from FlashBites.</p>
-                <p style="color: #999; font-size: 14px;">Domain: <a href="https://flashbites.shop">https://flashbites.shop</a></p>
+                <p style="color: #999; font-size: 14px;">Domain: <a href="https://flashbites.in">https://flashbites.in</a></p>
               </div>
             </div>
           `

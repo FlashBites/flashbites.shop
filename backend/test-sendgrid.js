@@ -45,7 +45,7 @@ const msg = {
           <span style="font-size: 32px; font-weight: bold; color: #f97316; letter-spacing: 5px;">${otp}</span>
         </div>
         <p style="color: #999; font-size: 14px;">This is a test email from FlashBites.</p>
-        <p style="color: #999; font-size: 14px;">Domain: https://flashbites.shop</p>
+        <p style="color: #999; font-size: 14px;">Domain: https://flashbites.in</p>
       </div>
     </div>
   `

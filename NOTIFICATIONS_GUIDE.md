@@ -199,4 +199,4 @@ VITE_API_URL=http://localhost:5000
 For issues or questions:
 - Check browser console for errors
 - Verify WebSocket connection status
-- Contact support@flashbites.shop
+- Contact support@flashbites.in

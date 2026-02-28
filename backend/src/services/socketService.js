@@ -13,8 +13,8 @@ const initializeSocket = (server) => {
       origin: [
         'http://localhost:3000',
         'https://flashbites.vercel.app',
-        'https://flashbites.shop',
-        'https://www.flashbites.shop',
+        'https://flashbites.in',
+        'https://www.flashbites.in',
         'capacitor://localhost',
         'ionic://localhost',
         'http://localhost',

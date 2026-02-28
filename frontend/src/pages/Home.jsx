@@ -7,6 +7,7 @@ import { Loader } from '../components/common/Loader';
 import { NEARBY_LOCATIONS } from '../utils/constants';
 import { calculateDistance } from '../utils/helpers';
 import { useGeolocation } from '../hooks/useGeolocation';
+import SEO from '../components/common/SEO';
 import toast from 'react-hot-toast';
 import {
   MagnifyingGlassIcon,
@@ -185,6 +186,12 @@ const Home = () => {
 
   return (
     <div className="page-wrapper flex justify-center lg:pt-10">
+      <SEO
+        title="Order Food Online – Best Restaurants Near You"
+        description="Order fresh, hot food online from top restaurants near you. Fast delivery, exclusive restaurant deals, and 500+ menu options. FlashBites – India's fastest food delivery."
+        url="/"
+        keywords="food delivery, order food online, restaurant near me, online food order India, FlashBites, fast delivery food, food app India"
+      />
       <div className="max-w-7xl mx-auto w-full">
       {/* ══════════════════════════════════
           SEARCH BAR (top, full-width)

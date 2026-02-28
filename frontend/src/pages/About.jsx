@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/common/SEO';
 import {
   BuildingStorefrontIcon,
   TruckIcon,
@@ -14,6 +15,12 @@ import {
 const About = () => {
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title="About Us – FlashBites Food Delivery"
+        description="Learn about FlashBites – India's fastest growing food delivery app. Founded in Sitapur, UP, we connect rural and semi-urban India with their favourite local restaurants."
+        url="/about"
+        keywords="about FlashBites, food delivery India, rural food delivery, Sitapur food delivery, FlashBites story"
+      />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white py-12 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto container-px">

@@ -18,7 +18,9 @@ exports.register = async (req, res) => {
     }
 
     // Verify Firebase ID token
+    console.log('[register] Verifying Firebase token, length:', firebaseToken?.length);
     const decoded = await verifyFirebaseToken(firebaseToken);
+    console.log('[register] Token verification result:', decoded ? 'SUCCESS uid=' + decoded.uid : 'FAILED');
     if (!decoded) {
       return errorResponse(res, 401, 'Phone verification failed. Please try again.');
     }
@@ -96,7 +98,7 @@ exports.register = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration error:', error.message, error.stack);
     errorResponse(res, 500, 'Registration failed', error.message);
   }
 };

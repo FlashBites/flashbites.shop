@@ -262,45 +262,44 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 sm:py-8">
-      <div className="max-w-4xl mx-auto container-px">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Checkout</h1>
+    <div className="min-h-screen pb-10" style={{ background: 'var(--bg-app)' }}>
+      <div className="max-w-4xl mx-auto container-px pt-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900" style={{ letterSpacing: '-0.02em' }}>Checkout</h1>
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* Left Column */}
           <div className="md:col-span-2 space-y-6">
             {/* Delivery Address */}
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <div className="bg-white rounded-2xl shadow-soft p-4 sm:p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-bold">Delivery Address</h2>
+                <h2 className="text-base font-bold text-gray-900">Delivery Address</h2>
                 <button
                   onClick={() => setShowAddAddressModal(true)}
-                  className="text-primary-600 hover:text-primary-700 font-semibold text-sm"
+                  className="text-sm font-semibold flex items-center gap-1"
+                  style={{ color: '#E23744' }}
                 >
-                  + Add New Address
+                  + Add New
                 </button>
               </div>
-              
+
               {addresses.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600 mb-4">No saved addresses</p>
-                  <button
-                    onClick={() => setShowAddAddressModal(true)}
-                    className="btn-primary"
-                  >
+                  <p className="text-gray-500 mb-4 text-sm">No saved addresses</p>
+                  <button onClick={() => setShowAddAddressModal(true)} className="btn-primary text-sm px-5 py-2.5">
                     Add Address
                   </button>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {addresses.map((address) => (
                     <label
                       key={address._id}
-                      className={`block p-4 border rounded-lg cursor-pointer transition ${
+                      className={`flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-all ${
                         selectedAddress === address._id
-                          ? 'border-primary-600 bg-primary-50'
-                          : 'border-gray-300 hover:border-primary-300'
+                          ? 'border-2 bg-red-50'
+                          : 'border border-gray-200 hover:border-gray-300'
                       }`}
+                      style={selectedAddress === address._id ? { borderColor: '#E23744' } : {}}
                     >
                       <input
                         type="radio"
@@ -308,12 +307,15 @@ const Checkout = () => {
                         value={address._id}
                         checked={selectedAddress === address._id}
                         onChange={() => setSelectedAddress(address._id)}
-                        className="mr-3"
+                        className="mt-1 flex-shrink-0"
+                        style={{ accentColor: '#E23744' }}
                       />
-                      <span className="font-semibold capitalize">{address.type}</span>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {address.street}, {address.city}, {address.state} - {address.zipCode}
-                      </p>
+                      <div>
+                        <span className="font-semibold capitalize text-sm text-gray-900">{address.type}</span>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {address.street}, {address.city}, {address.state} - {address.zipCode}
+                        </p>
+                      </div>
                     </label>
                   ))}
                 </div>
@@ -321,189 +323,109 @@ const Checkout = () => {
             </div>
 
             {/* Apply Coupon */}
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-bold mb-4">Apply Coupon</h2>
-              
+            <div className="bg-white rounded-2xl shadow-soft p-4 sm:p-5">
+              <h2 className="text-base font-bold text-gray-900 mb-3">Have a coupon?</h2>
               {appliedCoupon ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600 font-bold text-lg">{appliedCoupon.code}</span>
-                        <span className="bg-green-600 text-white text-xs px-2 py-0.5 rounded">Applied</span>
+                        <span className="text-green-700 font-bold">{appliedCoupon.code}</span>
+                        <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">APPLIED</span>
                       </div>
-                      <p className="text-sm text-green-700 mt-1">{appliedCoupon.description}</p>
-                      <p className="text-sm font-semibold text-green-800 mt-2">
-                        You saved {formatCurrency(appliedCoupon.discount)}!
-                      </p>
+                      <p className="text-xs text-green-600 mt-1">{appliedCoupon.description}</p>
+                      <p className="text-xs font-bold text-green-700 mt-1">You saved {formatCurrency(appliedCoupon.discount)}</p>
                     </div>
-                    <button
-                      onClick={handleRemoveCoupon}
-                      className="text-red-600 hover:text-red-700 font-semibold text-sm"
-                    >
+                    <button onClick={handleRemoveCoupon} className="text-red-500 text-sm font-semibold">
                       Remove
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex gap-2">
                   <input
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder="Enter coupon code"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 border border-transparent focus:outline-none focus:border-red-400 text-sm font-medium transition"
                   />
                   <button
                     onClick={handleApplyCoupon}
                     disabled={couponLoading || !couponCode.trim()}
-                    className="btn-primary px-6 py-2.5 sm:py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-primary px-5 py-2.5 text-sm disabled:opacity-50"
                   >
-                    {couponLoading ? 'Applying...' : 'Apply'}
+                    {couponLoading ? '...' : 'Apply'}
                   </button>
                 </div>
               )}
             </div>
 
             {/* Payment Method */}
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-bold mb-4">Payment Method</h2>
-              
-              <div className="space-y-3">
-                {/* Card Payment */}
-                <label className={`block p-4 border-2 rounded-lg cursor-pointer transition ${
-                  paymentMethod === 'card'
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-300 hover:border-primary-300'
-                }`}>
-                  <div className="flex items-start">
+            <div className="bg-white rounded-2xl shadow-soft p-4 sm:p-5">
+              <h2 className="text-base font-bold text-gray-900 mb-3">Payment Method</h2>
+              <div className="space-y-2.5">
+                {[
+                  { value: 'card', label: 'Credit / Debit Card', sub: 'Visa, Mastercard, Amex & more', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
+                  { value: 'upi', label: 'UPI', sub: 'PhonePe, Google Pay, Paytm & more', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" strokeLinecap="round" strokeWidth="3"/></svg> },
+                  { value: 'cod', label: 'Cash on Delivery', sub: 'Pay with cash when your order arrives', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> },
+                ].map(opt => (
+                  <label
+                    key={opt.value}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl cursor-pointer transition-all ${
+                      paymentMethod === opt.value ? 'border-2 bg-red-50' : 'border border-gray-200'
+                    }`}
+                    style={paymentMethod === opt.value ? { borderColor: '#E23744' } : {}}
+                  >
                     <input
                       type="radio"
                       name="payment"
-                      value="card"
-                      checked={paymentMethod === 'card'}
+                      value={opt.value}
+                      checked={paymentMethod === opt.value}
                       onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="mr-3 mt-1"
+                      className="flex-shrink-0"
+                      style={{ accentColor: '#E23744' }}
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <span className="text-2xl mr-2">💳</span>
-                        <span className="font-semibold">Credit/Debit Card</span>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1 ml-8">
-                        Visa, Mastercard, Amex, and more
-                      </p>
+                    <span className="flex-shrink-0" style={{ color: paymentMethod === opt.value ? '#E23744' : '#6B7280' }}>
+                      {opt.icon}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-semibold text-sm text-gray-900">{opt.label}</span>
+                      <p className="text-xs text-gray-400 mt-0.5">{opt.sub}</p>
                     </div>
-                  </div>
-                </label>
-
-                {/* UPI Payment */}
-                <label className={`block p-4 border-2 rounded-lg cursor-pointer transition ${
-                  paymentMethod === 'upi'
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-300 hover:border-primary-300'
-                }`}>
-                  <div className="flex items-start">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="upi"
-                      checked={paymentMethod === 'upi'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="mr-3 mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <span className="text-2xl mr-2">📱</span>
-                        <span className="font-semibold">UPI</span>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1 ml-8">
-                        PhonePe, Google Pay, Paytm & more
-                      </p>
-                    </div>
-                  </div>
-                </label>
-
-                {/* Cash on Delivery */}
-                <label className={`block p-4 border-2 rounded-lg cursor-pointer transition ${
-                  paymentMethod === 'cod'
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-300 hover:border-primary-300'
-                }`}>
-                  <div className="flex items-start">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="cod"
-                      checked={paymentMethod === 'cod'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="mr-3 mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <span className="text-2xl mr-2">💵</span>
-                        <span className="font-semibold">Cash on Delivery</span>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1 ml-8">
-                        Pay with cash when your order arrives
-                      </p>
-                    </div>
-                  </div>
-                </label>
+                  </label>
+                ))}
               </div>
-
-              {/* Payment Method Info */}
-              {paymentMethod === 'card' && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-blue-800">
-                    ℹ️ You'll be redirected to secure payment gateway to complete your payment
-                  </p>
-                </div>
-              )}
-              {paymentMethod === 'upi' && (
-                <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                  <p className="text-sm text-purple-800">
-                    ℹ️ You'll receive a UPI payment request to complete your order
-                  </p>
-                </div>
-              )}
-              {paymentMethod === 'cod' && (
-                <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-green-800">
-                    ℹ️ Please keep exact change handy for smooth delivery
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
           {/* Right Column - Order Summary */}
           <div>
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6 sticky top-20 md:top-24">
-              <h2 className="text-lg sm:text-xl font-bold mb-4">Order Summary</h2>
+            <div className="bg-white rounded-2xl shadow-soft p-4 sm:p-5 sticky top-20 md:top-24">
+              <h2 className="text-base font-bold text-gray-900 mb-4">Order Summary</h2>
 
-              <div className="space-y-3 mb-4">
+              <div className="space-y-2.5 mb-4">
                 {items.map((item) => (
                   <div key={item._id} className="flex justify-between text-sm">
-                    <span>{item.name} x{item.quantity}</span>
-                    <span>{formatCurrency((Number(item.price) || 0) * (item.quantity || 1))}</span>
+                    <span className="text-gray-700">{item.name} <span className="text-gray-400">x{item.quantity}</span></span>
+                    <span className="font-medium">{formatCurrency((Number(item.price) || 0) * (item.quantity || 1))}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t pt-3 space-y-2 text-sm">
-                <div className="flex justify-between">
+              <div className="rounded-xl p-3 space-y-2 text-sm mb-4" style={{ background: 'var(--bg-input)' }}>
+                <div className="flex justify-between text-gray-500">
                   <span>Subtotal</span>
-                  <span>{formatCurrency(subtotal)}</span>
+                  <span className="font-medium text-gray-700">{formatCurrency(subtotal)}</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between text-gray-500">
                   <div>
                     <span>Delivery Fee</span>
                     {deliveryDistance > 0 && (
-                      <span className="text-xs text-gray-500 ml-1">({deliveryDistance.toFixed(1)} km)</span>
+                      <span className="text-xs text-gray-400 ml-1">({deliveryDistance.toFixed(1)} km)</span>
                     )}
                   </div>
-                  <span>{formatCurrency(deliveryFee)}</span>
+                  <span className="font-medium text-gray-700">{formatCurrency(deliveryFee)}</span>
                 </div>
                 {appliedCoupon && (
                   <div className="flex justify-between text-green-600 font-semibold">
@@ -511,24 +433,23 @@ const Checkout = () => {
                     <span>-{formatCurrency(discount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
+                <div className="flex justify-between text-gray-500">
                   <span>Tax (5%)</span>
-                  <span>{formatCurrency(tax)}</span>
+                  <span className="font-medium text-gray-700">{formatCurrency(tax)}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                <div className="flex justify-between text-[15px] font-bold pt-2 border-t border-gray-200">
                   <span>Total</span>
-                  <span className="text-primary-600">{formatCurrency(total)}</span>
+                  <span style={{ color: '#E23744' }}>{formatCurrency(total)}</span>
                 </div>
               </div>
 
-              {/* Minimum Order Warning */}
               {subtotal < MINIMUM_ORDER_VALUE && (
-                <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
-                  <p className="text-sm text-red-800 font-medium">
-                    ⚠️ Minimum order value is {formatCurrency(MINIMUM_ORDER_VALUE)}
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-sm text-red-700 font-medium">
+                    Minimum order is {formatCurrency(MINIMUM_ORDER_VALUE)}
                   </p>
-                  <p className="text-xs text-red-600 mt-1">
-                    Add {formatCurrency(MINIMUM_ORDER_VALUE - subtotal)} more to place order
+                  <p className="text-xs text-red-500 mt-0.5">
+                    Add {formatCurrency(MINIMUM_ORDER_VALUE - subtotal)} more
                   </p>
                 </div>
               )}
@@ -536,9 +457,9 @@ const Checkout = () => {
               <button
                 onClick={handlePlaceOrder}
                 disabled={loading || !selectedAddress || subtotal < MINIMUM_ORDER_VALUE}
-                className="w-full btn-primary py-3 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full btn-primary py-3.5 text-[15px] font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Placing Order...' : subtotal < MINIMUM_ORDER_VALUE ? `Minimum Order ${formatCurrency(MINIMUM_ORDER_VALUE)}` : 'Place Order'}
+                {loading ? 'Placing Order...' : subtotal < MINIMUM_ORDER_VALUE ? `Min. Order ${formatCurrency(MINIMUM_ORDER_VALUE)}` : 'Place Order'}
               </button>
             </div>
           </div>

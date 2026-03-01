@@ -38,6 +38,7 @@ import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import NotificationsPage from './pages/NotificationsPage';
 import HelpPage from './pages/HelpPage';
+import PromosPage from './pages/PromosPage';
 import NotFound from './pages/NotFound';
 
 // Google OAuth Success Handler
@@ -137,6 +138,7 @@ function App() {
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/help" element={<HelpPage />} />
+              <Route path="/promos" element={<PromosPage />} />
 
               {/* Protected Routes */}
               <Route

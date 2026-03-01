@@ -7,9 +7,7 @@ import {
   HomeIcon,
   MagnifyingGlassIcon,
   ShoppingBagIcon,
-  MapPinIcon,
   BellIcon,
-  ChevronDownIcon,
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import {
@@ -24,7 +22,6 @@ import { toggleCart } from '../../redux/slices/uiSlice';
 import toast from 'react-hot-toast';
 import logo from '../../assets/logo.png';
 import NotificationBell from './NotificationBell';
-import { NEARBY_LOCATIONS } from '../../utils/constants';
 
 const BRAND = '#FF523B';
 
@@ -35,11 +32,8 @@ const Navbar = () => {
   const { isAuthenticated, user } = useSelector((s) => s.auth);
   const { items } = useSelector((s) => s.cart);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showLocationMenu, setShowLocationMenu] = useState(false);
-  const [locationLabel, setLocationLabel] = useState('Select Area');
   const [mobileSearch, setMobileSearch] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const locationRef = useRef(null);
   const dropdownRef = useRef(null);
 
   const cartCount = items.reduce((t, i) => t + i.quantity, 0);
@@ -66,7 +60,6 @@ const Navbar = () => {
 
   useEffect(() => {
     const handler = (e) => {
-      if (locationRef.current && !locationRef.current.contains(e.target)) setShowLocationMenu(false);
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setShowDropdown(false);
     };
     document.addEventListener('mousedown', handler);
@@ -108,45 +101,17 @@ const Navbar = () => {
             </button>
           )}
 
-          {/* Location selector — left */}
-          <div className="flex-1 min-w-0" ref={locationRef}>
-            <button
-              onClick={() => setShowLocationMenu(!showLocationMenu)}
-              className="flex items-center gap-1.5 text-left group"
-            >
-              <div className="icon-btn h-8 w-8 flex-shrink-0" style={{ background: '#FFF0ED' }}>
-                <MapPinIcon className="h-4 w-4" style={{ color: BRAND }} />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-0.5">
-                  <span className="text-sm font-bold text-gray-900 truncate">{locationLabel}</span>
-                  <ChevronDownIcon className="h-3.5 w-3.5 text-gray-500 flex-shrink-0" />
-                </div>
-                <p className="text-[11px] text-gray-400 truncate leading-none">Tap to change</p>
-              </div>
-            </button>
-
-            {/* Location dropdown */}
-            {showLocationMenu && (
-              <div className="absolute top-[62px] left-4 right-4 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 animate-slide-down max-h-72 overflow-y-auto">
-                <div className="p-3 border-b border-gray-100">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Popular Locations</p>
-                </div>
-                {NEARBY_LOCATIONS.map((loc) => (
-                  <button
-                    key={loc.id}
-                    onClick={() => { setLocationLabel(loc.name); setShowLocationMenu(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50 text-left transition-colors border-b border-gray-50 last:border-0"
-                  >
-                    <MapPinIcon className="h-4 w-4 flex-shrink-0" style={{ color: BRAND }} />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{loc.name}</p>
-                      <p className="text-xs text-gray-400">{loc.district}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* Brand logo — centre/left on mobile */}
+          <div className="flex-1 min-w-0">
+            <Link to="/" className="flex items-center gap-2 min-w-0">
+              <img src={logo} alt="FlashBites" className="h-7 w-auto flex-shrink-0" />
+              <span
+                className="text-[15px] font-black tracking-tight text-gray-900 truncate hidden xs:block"
+                style={{ letterSpacing: '-0.02em' }}
+              >
+                FlashBites
+              </span>
+            </Link>
           </div>
 
           {/* Right icons: Search + Bell/Notifications + Cart */}
@@ -239,34 +204,8 @@ const Navbar = () => {
               </div>
             </form>
 
-            {/* Location (desktop) */}
-            <div className="relative flex-shrink-0" ref={locationRef}>
-              <button
-                onClick={() => setShowLocationMenu(!showLocationMenu)}
-                className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <MapPinIcon className="h-4 w-4" style={{ color: BRAND }} />
-                <span>{locationLabel}</span>
-                <ChevronDownIcon className="h-3.5 w-3.5" />
-              </button>
-              {showLocationMenu && (
-                <div className="absolute top-8 left-0 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 animate-slide-down w-56 max-h-64 overflow-y-auto">
-                  {NEARBY_LOCATIONS.map((loc) => (
-                    <button
-                      key={loc.id}
-                      onClick={() => { setLocationLabel(loc.name); setShowLocationMenu(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50 text-left transition-colors border-b border-gray-50 last:border-0"
-                    >
-                      <MapPinIcon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: BRAND }} />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{loc.name}</p>
-                        <p className="text-xs text-gray-400">{loc.district}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+
+
 
             {/* Right actions */}
             <div className="flex items-center gap-3 flex-shrink-0">

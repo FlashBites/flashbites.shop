@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearError, setAuthUser } from '../redux/slices/authSlice';
@@ -14,9 +14,11 @@ const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { error, isAuthenticated, user } = useSelector((state) => state.auth);
+  const recaptchaReady = useRef(false);
 
-  const [step, setStep] = useState(1); // 1: details, 2: OTP verification
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -27,19 +29,27 @@ const Register = () => {
     otp: ''
   });
 
+  /* Pre-warm reCAPTCHA as soon as the page loads — saves 2-3s on OTP send */
   useEffect(() => {
-    if (isAuthenticated && user) {
-      const roleMap = { admin: '/admin', restaurant_owner: '/dashboard', delivery_partner: '/delivery-dashboard' };
-      navigate(roleMap[user.role] || '/');
-    }
-  }, [isAuthenticated, user, navigate]);
+    const warmUp = () => {
+      try {
+        setupRecaptcha();
+        recaptchaReady.current = true;
+      } catch (e) {
+        // Will retry on button click
+      }
+    };
+    // Give the DOM a tick to render the #recaptcha-container
+    const t = setTimeout(warmUp, 300);
+    return () => clearTimeout(t);
+  }, []);
 
+  /* Resend countdown timer */
   useEffect(() => {
-    if (error) {
-      toast.error(error);
-      dispatch(clearError());
-    }
-  }, [error, dispatch]);
+    if (resendCountdown <= 0) return;
+    const t = setInterval(() => setResendCountdown(c => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [resendCountdown]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,22 +58,18 @@ const Register = () => {
   const handleSendOTP = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.name || !formData.phone || !formData.password) {
       toast.error('Please fill in name, phone, and password');
       return;
     }
-
     if (!validatePhone(formData.phone)) {
       toast.error('Please enter a valid 10-digit phone number');
       return;
     }
-
     if (!validatePassword(formData.password)) {
       toast.error('Password must be at least 6 characters');
       return;
     }
-
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -71,17 +77,16 @@ const Register = () => {
 
     setLoading(true);
     try {
-      // Setup reCAPTCHA
-      setupRecaptcha();
-
-      // Send OTP via Firebase
+      // Ensure reCAPTCHA is ready (may already be pre-warmed)
+      if (!recaptchaReady.current) setupRecaptcha();
       const phoneWithCode = `+91${formData.phone}`;
       await sendPhoneOTP(phoneWithCode);
-
       toast.success('OTP sent to your phone number');
       setStep(2);
+      setResendCountdown(30); // 30s before resend allowed
     } catch (error) {
       console.error('Send OTP error:', error);
+      recaptchaReady.current = false; // reset so next click re-inits
       if (error.code === 'auth/too-many-requests') {
         toast.error('Too many attempts. Please try again later.');
       } else if (error.code === 'auth/invalid-phone-number') {
@@ -146,13 +151,17 @@ const Register = () => {
   };
 
   const handleResendOTP = async () => {
+    if (resendCountdown > 0) return;
     setLoading(true);
     try {
       setupRecaptcha();
+      recaptchaReady.current = true;
       const phoneWithCode = `+91${formData.phone}`;
       await sendPhoneOTP(phoneWithCode);
       toast.success('OTP resent to your phone');
+      setResendCountdown(30);
     } catch (error) {
+      recaptchaReady.current = false;
       toast.error(error.message || 'Failed to resend OTP');
     } finally {
       setLoading(false);
@@ -308,9 +317,10 @@ const Register = () => {
                 </button>
 
                 <div className="flex items-center justify-between text-sm">
-                  <button type="button" onClick={handleResendOTP} disabled={loading}
-                    className="font-semibold" style={{ color: BRAND }}>
-                    Resend OTP
+                  <button type="button" onClick={handleResendOTP}
+                    disabled={loading || resendCountdown > 0}
+                    className="font-semibold disabled:opacity-40" style={{ color: BRAND }}>
+                    {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : 'Resend OTP'}
                   </button>
                   <button type="button" onClick={() => setStep(1)}
                     className="text-gray-400 hover:text-gray-600">

@@ -84,6 +84,7 @@ const allowedOrigins = [
   'ionic://localhost',
   'http://localhost',
   'https://flash-bite-go.base44.app',
+  'https://api.razorpay.com',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 

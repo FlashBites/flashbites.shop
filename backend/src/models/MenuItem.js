@@ -24,8 +24,19 @@ const menuItemSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Starters', 'Main Course', 'Desserts', 'Beverages', 'Breads', 'Rice', 'Snacks']
+    enum: ['Starters', 'Main Course', 'Desserts', 'Beverages', 'Breads', 'Rice', 'Snacks', 'Fast Food', 'Pizza', 'Burger', 'South Indian', 'North Indian', 'Chinese']
   },
+  variants: [{
+    name: {
+      type: String, // e.g., 'Regular', 'Large', 'Half', 'Full'
+      required: true
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: [0, 'Variant price cannot be negative']
+    }
+  }],
   image: {
     type: String,
     required: [true, 'Please provide item image']

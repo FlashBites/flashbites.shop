@@ -84,6 +84,7 @@ const RestaurantDashboard = () => {
     category: '',
     isVeg: true,
     isAvailable: true,
+    variants: [],
   });
 
   useEffect(() => {
@@ -227,6 +228,10 @@ const RestaurantDashboard = () => {
       formData.append('isVeg', menuItemData.isVeg);
       formData.append('isAvailable', menuItemData.isAvailable);
       
+      if (menuItemData.variants && menuItemData.variants.length > 0) {
+        formData.append('variants', JSON.stringify(menuItemData.variants));
+      }
+      
       // Append image if selected
       if (menuImageFile) {
         formData.append('image', menuImageFile);
@@ -252,6 +257,7 @@ const RestaurantDashboard = () => {
         category: '',
         isVeg: true,
         isAvailable: true,
+        variants: [],
       });
       
       // Immediately refresh menu items
@@ -356,6 +362,7 @@ const RestaurantDashboard = () => {
       category: item.category,
       isVeg: item.isVeg,
       isAvailable: item.isAvailable,
+      variants: item.variants || [],
     });
     setMenuImagePreview(item.image);
     setShowMenuForm(true);
@@ -674,6 +681,7 @@ const RestaurantDashboard = () => {
                           category: '',
                           isVeg: true,
                           isAvailable: true,
+                          variants: [],
                         });
                         setMenuImageFile(null);
                         setMenuImagePreview(null);
@@ -760,12 +768,24 @@ const RestaurantDashboard = () => {
                             
                             <div className="flex justify-between items-center mb-2">
                               <span className="font-bold text-xl text-primary-600">
-                                ₹{item.price}
+                                ₹{item.price} <span className="text-xs text-gray-500 font-normal">{item.variants && item.variants.length > 0 ? "onwards" : ""}</span>
                               </span>
                               <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
                                 {item.category}
                               </span>
                             </div>
+                            
+                            {item.variants && item.variants.length > 0 && (
+                              <div className="mb-2 space-y-1">
+                                <div className="flex flex-wrap gap-1">
+                                  {item.variants.map((v, i) => (
+                                    <span key={i} className="text-xs bg-gray-50 border border-gray-200 px-2 py-0.5 rounded text-gray-700">
+                                      {v.name}: ₹{v.price}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             
                             <div className="mt-2">
                               <span
@@ -1534,6 +1554,65 @@ const RestaurantDashboard = () => {
                       <option value="Chinese">Chinese</option>
                     </select>
                   </div>
+                </div>
+
+                {/* Variants Section */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-sm font-medium">Variants (Optional)</label>
+                    <button
+                      type="button"
+                      onClick={() => setMenuItemData({
+                        ...menuItemData,
+                        variants: [...(menuItemData.variants || []), { name: '', price: '' }]
+                      })}
+                      className="text-primary-600 text-sm font-medium hover:text-primary-700"
+                    >
+                      + Add Variant
+                    </button>
+                  </div>
+                  {(menuItemData.variants || []).map((variant, index) => (
+                    <div key={index} className="flex gap-3 mb-2 items-center">
+                      <input
+                        type="text"
+                        placeholder="Name (e.g., Large, Half)"
+                        required
+                        value={variant.name}
+                        onChange={(e) => {
+                          const newVariants = [...menuItemData.variants];
+                          newVariants[index].name = e.target.value;
+                          setMenuItemData({ ...menuItemData, variants: newVariants });
+                        }}
+                        className="flex-1 px-3 py-1.5 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        required
+                        min="0"
+                        value={variant.price}
+                        onChange={(e) => {
+                          const newVariants = [...menuItemData.variants];
+                          newVariants[index].price = e.target.value;
+                          setMenuItemData({ ...menuItemData, variants: newVariants });
+                        }}
+                        className="w-24 px-3 py-1.5 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newVariants = menuItemData.variants.filter((_, i) => i !== index);
+                          setMenuItemData({ ...menuItemData, variants: newVariants });
+                        }}
+                        className="text-red-500 hover:text-red-700 flex-shrink-0"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ))}
+                  {(!menuItemData.variants || menuItemData.variants.length === 0) && (
+                    <p className="text-xs text-gray-500">Add options like Regular, Medium, Large, Half, Full</p>
+                  )}
                 </div>
 
                 <div className="flex items-center space-x-6">

@@ -144,7 +144,7 @@ exports.createOrder = async (req, res) => {
       _id: { $in: uniqueMenuItemIds },
       restaurantId,
     })
-      .select('_id name price image isAvailable')
+      .select('_id name price image isAvailable variants')
       .lean();
 
     const menuItemMap = new Map(menuItems.map((menuItem) => [String(menuItem._id), menuItem]));
@@ -165,14 +165,25 @@ exports.createOrder = async (req, res) => {
         return errorResponse(res, 400, `Invalid quantity for ${menuItem.name}`);
       }
 
-      const itemTotal = menuItem.price * quantity;
+      let itemPrice = menuItem.price;
+      let itemName = menuItem.name;
+      
+      if (item.variantName && menuItem.variants && menuItem.variants.length > 0) {
+        const variant = menuItem.variants.find(v => v.name === item.variantName);
+        if (variant) {
+          itemPrice = variant.price;
+          itemName = `${menuItem.name} (${variant.name})`;
+        }
+      }
+
+      const itemTotal = itemPrice * quantity;
       subtotal += itemTotal;
 
       orderItems.push({
         menuItemId: menuItem._id,
-        name: menuItem.name,
+        name: itemName,
         quantity,
-        price: menuItem.price,
+        price: itemPrice,
         image: menuItem.image
       });
     }

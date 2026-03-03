@@ -133,8 +133,9 @@ const Checkout = () => {
         restaurantId: restaurant._id,
         addressId: selectedAddress,
         items: items.map(item => ({
-          menuItemId: item._id,
-          quantity: item.quantity
+          menuItemId: item.originalId || item._id,
+          quantity: item.quantity,
+          variantName: item.selectedVariant ? item.selectedVariant.name : undefined
         })),
         paymentMethod: paymentMethod || 'cod',
         couponCode: appliedCoupon?.code || null

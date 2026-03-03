@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { PlusIcon, MinusIcon } from '@heroicons/react/24/solid';
 import { addToCart, updateQuantity } from '../../redux/slices/cartSlice';
@@ -9,10 +9,17 @@ const BRAND = '#FF523B';
 
 const MenuCard = ({ item, restaurant, disabled = false }) => {
   const dispatch = useDispatch();
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   
-  // Find if this item is already in cart to get its quantity
+  const hasVariants = item.variants && item.variants.length > 0;
+  const activeVariant = hasVariants ? item.variants[selectedVariantIndex] : null;
+  // Use index or _id for uniqueness of variants
+  const currentItemId = hasVariants ? `${item._id}-${activeVariant.name}` : item._id;
+  const displayPrice = hasVariants ? activeVariant.price : item.price;
+  
+  // Find if this specific config is already in cart to get its quantity
   const cartItems = useSelector(state => state.cart.items);
-  const cartItem = cartItems.find(i => i._id === item._id);
+  const cartItem = cartItems.find(i => i._id === currentItemId);
   const quantity = cartItem ? cartItem.quantity : 0;
 
   const handleAddToCart = () => {
@@ -20,16 +27,26 @@ const MenuCard = ({ item, restaurant, disabled = false }) => {
       toast.error('Restaurant is currently closed');
       return;
     }
-    dispatch(addToCart({ item, restaurant }));
+    
+    const itemToAdd = hasVariants ? {
+      ...item,
+      _id: currentItemId,
+      originalId: item._id,
+      name: `${item.name} (${activeVariant.name})`,
+      price: activeVariant.price,
+      selectedVariant: activeVariant
+    } : item;
+    
+    dispatch(addToCart({ item: itemToAdd, restaurant }));
     toast.success('Added to cart!');
   };
 
   const handleIncrement = () => {
-    dispatch(updateQuantity({ itemId: item._id, quantity: quantity + 1 }));
+    dispatch(updateQuantity({ itemId: currentItemId, quantity: quantity + 1 }));
   };
 
   const handleDecrement = () => {
-    dispatch(updateQuantity({ itemId: item._id, quantity: quantity - 1 }));
+    dispatch(updateQuantity({ itemId: currentItemId, quantity: quantity - 1 }));
   };
 
   return (
@@ -63,9 +80,26 @@ const MenuCard = ({ item, restaurant, disabled = false }) => {
           </div>
         )}
 
+        {/* Variants Selector */}
+        {hasVariants && (
+          <div className="mb-3">
+            <select
+              value={selectedVariantIndex}
+              onChange={(e) => setSelectedVariantIndex(Number(e.target.value))}
+              className="w-full sm:w-auto px-3 py-1.5 text-sm border-gray-200 border rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 text-gray-700 font-medium"
+            >
+              {item.variants.map((variant, idx) => (
+                <option key={idx} value={idx}>
+                  {variant.name} - {formatCurrency(variant.price)}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-3 mt-2">
           <span className="text-lg font-bold" style={{ color: BRAND }}>
-            {formatCurrency(Number(item.price) || 0)}
+            {formatCurrency(Number(displayPrice) || 0)}
           </span>
 
           {!restaurant.acceptingOrders ? (

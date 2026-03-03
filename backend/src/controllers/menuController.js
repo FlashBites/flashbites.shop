@@ -8,7 +8,7 @@ const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 // @access  Private (Owner)
 exports.addMenuItem = async (req, res) => {
   try {
-    const { name, description, price, category, isVeg, tags, prepTime, isAvailable } = req.body;
+    const { name, description, price, category, isVeg, tags, prepTime, isAvailable, variants } = req.body;
 
     // Validate required fields
     if (!name || !description || !price || !category) {
@@ -38,7 +38,8 @@ exports.addMenuItem = async (req, res) => {
       isVeg: isVeg === 'true' || isVeg === true,
       isAvailable: isAvailable === 'true' || isAvailable === true || isAvailable === undefined,
       tags: tags ? (Array.isArray(tags) ? tags : [tags]) : [],
-      prepTime: prepTime ? parseInt(prepTime) : 20
+      prepTime: prepTime ? parseInt(prepTime) : 20,
+      variants: variants ? (typeof variants === 'string' ? JSON.parse(variants) : variants) : []
     };
 
     const menuItem = await MenuItem.create(menuItemData);
@@ -99,6 +100,14 @@ exports.updateMenuItem = async (req, res) => {
         await deleteFromCloudinary(menuItem.image);
       }
       req.body.image = await uploadToCloudinary(req.file.buffer, 'flashbites/menu-items');
+    }
+
+    if (req.body.variants && typeof req.body.variants === 'string') {
+      try {
+        req.body.variants = JSON.parse(req.body.variants);
+      } catch (e) {
+        console.error('Failed to parse variants string', e);
+      }
     }
 
     const updatedMenuItem = await MenuItem.findByIdAndUpdate(

@@ -104,7 +104,11 @@ exports.updateMenuItem = async (req, res) => {
 
     if (req.body.variants && typeof req.body.variants === 'string') {
       try {
-        req.body.variants = JSON.parse(req.body.variants);
+        const parsedVariants = JSON.parse(req.body.variants);
+        if (Array.isArray(parsedVariants)) {
+          // Filter out variants with empty name or strictly invalid price
+          req.body.variants = parsedVariants.filter(v => v.name && v.name.trim() !== '' && v.price !== '' && v.price !== null);
+        }
       } catch (e) {
         console.error('Failed to parse variants string', e);
       }
@@ -118,6 +122,10 @@ exports.updateMenuItem = async (req, res) => {
 
     successResponse(res, 200, 'Menu item updated successfully', { menuItem: updatedMenuItem });
   } catch (error) {
+    console.error('Update Menu Item Error:', error);
+    if (error.name === 'ValidationError') {
+      console.error('Validation Errors:', Object.keys(error.errors).map(k => error.errors[k].message));
+    }
     errorResponse(res, 500, 'Failed to update menu item', error.message);
   }
 };

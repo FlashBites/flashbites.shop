@@ -74,6 +74,12 @@ export const deleteMenuItem = async (restaurantId, itemId) => {
   return response.data;
 };
 
+// Toggle menu item availability
+export const toggleMenuItemAvailability = async (restaurantId, itemId) => {
+  const response = await axios.patch(`/restaurants/${restaurantId}/menu/${itemId}/availability`);
+  return response.data;
+};
+
 // Get restaurant analytics
 export const getRestaurantAnalytics = async (id, params = {}) => {
   const response = await axios.get(`/restaurants/${id}/analytics`, { params });

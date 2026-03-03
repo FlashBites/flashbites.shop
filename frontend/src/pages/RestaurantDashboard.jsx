@@ -23,6 +23,7 @@ import {
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  toggleMenuItemAvailability,
   getRestaurantAnalytics 
 } from '../api/restaurantApi';
 import { getRestaurantOrders, updateOrderStatus } from '../api/orderApi';
@@ -217,6 +218,13 @@ const RestaurantDashboard = () => {
 
   const handleMenuItemSubmit = async (e) => {
     e.preventDefault();
+    
+    // Manual validation to bypass hidden HTML5 tooltip block on description
+    if (!menuItemData.description) {
+      toast.error('Please enter a description for the item!');
+      return;
+    }
+    
     try {
       const formData = new FormData();
       
@@ -274,11 +282,21 @@ const RestaurantDashboard = () => {
     try {
       await deleteMenuItem(restaurant._id, itemId);
       toast.success('Menu item deleted');
-      // Immediately refresh menu items
       await fetchMenuItems(restaurant._id);
     } catch (error) {
       toast.error('Failed to delete menu item');
       console.error('Delete error:', error);
+    }
+  };
+
+  const handleToggleAvailability = async (itemId) => {
+    try {
+      await toggleMenuItemAvailability(restaurant._id, itemId);
+      toast.success('Availability changed');
+      await fetchMenuItems(restaurant._id);
+    } catch (error) {
+      toast.error('Failed to change status');
+      console.error('Toggle error:', error);
     }
   };
 
@@ -362,7 +380,7 @@ const RestaurantDashboard = () => {
       category: item.category,
       isVeg: item.isVeg,
       isAvailable: item.isAvailable,
-      variants: item.variants || [],
+      variants: item.variants ? item.variants.map(v => ({ ...v })) : [],
     });
     setMenuImagePreview(item.image);
     setShowMenuForm(true);
@@ -746,15 +764,26 @@ const RestaurantDashboard = () => {
                               <h3 className="font-bold text-lg flex-1">{item.name}</h3>
                               <div className="flex space-x-2 ml-2">
                                 <button
+                                  onClick={() => handleToggleAvailability(item._id)}
+                                  className={`p-1.5 rounded transition-colors ${item.isAvailable ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-100'}`}
+                                  title="Toggle availability"
+                                >
+                                  {item.isAvailable ? (
+                                    <CheckCircleIcon className="h-5 w-5" />
+                                  ) : (
+                                    <XCircleIcon className="h-5 w-5" />
+                                  )}
+                                </button>
+                                <button
                                   onClick={() => handleEditMenuItem(item)}
-                                  className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded"
+                                  className="text-blue-600 hover:text-blue-800 p-1.5 hover:bg-blue-50 rounded"
                                   title="Edit item"
                                 >
                                   <PencilIcon className="h-5 w-5" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteMenuItem(item._id)}
-                                  className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
+                                  className="text-red-600 hover:text-red-800 p-1.5 hover:bg-red-50 rounded"
                                   title="Delete item"
                                 >
                                   <TrashIcon className="h-5 w-5" />
@@ -787,16 +816,12 @@ const RestaurantDashboard = () => {
                               </div>
                             )}
                             
-                            <div className="mt-2">
-                              <span
-                                className={`text-xs px-2 py-1 rounded font-medium ${
-                                  item.isAvailable
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-200 text-gray-600'
-                                }`}
-                              >
-                                {item.isAvailable ? '✓ Available' : '✗ Unavailable'}
-                              </span>
+                            <div className="mt-2 text-xs">
+                              {item.isAvailable ? (
+                                <span className="text-green-600 font-medium">✓ Available to order</span>
+                              ) : (
+                                <span className="text-red-500 font-medium">✗ Currently Unavailable</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1495,8 +1520,8 @@ const RestaurantDashboard = () => {
                     Description *
                   </label>
                   <textarea
-                    required
                     value={menuItemData.description}
+                    placeholder="Enter item description..."
                     onChange={(e) =>
                       setMenuItemData({
                         ...menuItemData,
@@ -1575,28 +1600,26 @@ const RestaurantDashboard = () => {
                     <div key={index} className="flex gap-3 mb-2 items-center">
                       <input
                         type="text"
-                        placeholder="Name (e.g., Large, Half)"
-                        required
+                        placeholder="Variant name"
                         value={variant.name}
                         onChange={(e) => {
                           const newVariants = [...menuItemData.variants];
-                          newVariants[index].name = e.target.value;
+                          newVariants[index] = { ...newVariants[index], name: e.target.value };
                           setMenuItemData({ ...menuItemData, variants: newVariants });
                         }}
-                        className="flex-1 px-3 py-1.5 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        className="flex-1 min-w-[100px] px-3 py-2 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
                       />
                       <input
                         type="number"
                         placeholder="Price"
-                        required
                         min="0"
                         value={variant.price}
                         onChange={(e) => {
                           const newVariants = [...menuItemData.variants];
-                          newVariants[index].price = e.target.value;
+                          newVariants[index] = { ...newVariants[index], price: e.target.value };
                           setMenuItemData({ ...menuItemData, variants: newVariants });
                         }}
-                        className="w-24 px-3 py-1.5 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                        className="w-20 sm:w-24 px-3 py-2 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
                       />
                       <button
                         type="button"

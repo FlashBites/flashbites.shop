@@ -45,9 +45,9 @@ instance.interceptors.request.use(
     // If sending FormData in browser, remove default Content-Type so browser sets boundary
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
-      delete config.headers.post['Content-Type'];
-      delete config.headers.put['Content-Type'];
-      delete config.headers.patch['Content-Type'];
+      if (config.headers.post) delete config.headers.post['Content-Type'];
+      if (config.headers.put) delete config.headers.put['Content-Type'];
+      if (config.headers.patch) delete config.headers.patch['Content-Type'];
     }
     
     return config;

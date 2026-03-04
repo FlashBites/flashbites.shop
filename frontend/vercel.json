@@ -9,6 +9,19 @@
       }
     }
   ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "(.*)flashbites\\.shop"
+        }
+      ],
+      "destination": "https://flashbites.in/$1",
+      "permanent": true
+    }
+  ],
   "routes": [
     {
       "src": "/manifest.json",

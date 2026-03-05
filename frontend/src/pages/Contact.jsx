@@ -65,7 +65,7 @@ const Contact = () => {
                   <PhoneIcon className="h-6 w-6 text-red-200 mt-1" />
                   <div className="ml-4">
                     <p className="text-base font-medium">Phone Support</p>
-                    <p className="text-red-100">+91 98765 43210</p>
+                    <p className="text-red-100">+91 7068247779</p>
                   </div>
                 </div>
                 
@@ -73,7 +73,7 @@ const Contact = () => {
                   <EnvelopeIcon className="h-6 w-6 text-red-200 mt-1" />
                   <div className="ml-4">
                     <p className="text-base font-medium">Email Us</p>
-                    <p className="text-red-100">support@flashbites.in</p>
+                    <p className="text-red-100">info.flashbites@gmail.com</p>
                   </div>
                 </div>
                 
@@ -82,9 +82,9 @@ const Contact = () => {
                   <div className="ml-4">
                     <p className="text-base font-medium">Headquarters</p>
                     <p className="text-red-100 leading-relaxed">
-                      123 Startup Avenue<br/>
-                      Tech Park Phase 1<br/>
-                      Bengaluru, Karnataka 560001
+                      NH24, Ataria<br/>
+                      Sitapur, 261303<br/>
+                      Uttar Pradesh, India
                     </p>
                   </div>
                 </div>
@@ -139,7 +139,7 @@ const Contact = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                      placeholder="+91 98765 43210"
+                      placeholder="+91 7068247779"
                     />
                   </div>
                   <div>

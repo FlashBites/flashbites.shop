@@ -173,8 +173,7 @@ const HelpPage = () => {
           </div>
           <div>
             <p className="text-[13px] font-bold text-gray-900">FlashBites Headquarters</p>
-            <p className="text-[13px] text-gray-500 mt-0.5">Sitapur, Uttar Pradesh, India</p>
-            <p className="text-[12px] text-gray-400 mt-0.5">PIN: 261303</p>
+            <p className="text-[13px] text-gray-500 mt-0.5">NH24, Ataria, Sitapur, 261303, Uttar Pradesh, India</p>
           </div>
         </div>
 

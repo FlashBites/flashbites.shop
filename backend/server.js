@@ -21,6 +21,9 @@ const connectDB = require('./src/config/database');
 // Import socket service
 const { initializeSocket } = require('./src/services/socketService');
 
+// Import keep alive
+const keepAlive = require('./src/utils/keepAlive');
+
 // Import routes
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
@@ -195,6 +198,7 @@ app.use(errorHandler);
   ╚═══════════════════════════════════════════╝
   `);
     initializeSocket(server);
+    keepAlive();
   });
 
   // Handle unhandled promise rejections

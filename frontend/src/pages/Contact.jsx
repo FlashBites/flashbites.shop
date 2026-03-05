@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { EnvelopeIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import axios from '../api/axios';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -23,8 +24,8 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await axios.post('/contact', formData);
       toast.success("Thanks for reaching out! We'll get back to you soon.");
       setFormData({
         name: '',
@@ -33,8 +34,11 @@ const Contact = () => {
         subject: '',
         message: ''
       });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to send message. Please try again.');
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   return (

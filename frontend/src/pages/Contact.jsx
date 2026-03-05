@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { MailIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -70,7 +70,7 @@ const Contact = () => {
                 </div>
                 
                 <div className="flex items-start">
-                  <MailIcon className="h-6 w-6 text-red-200 mt-1" />
+                  <EnvelopeIcon className="h-6 w-6 text-red-200 mt-1" />
                   <div className="ml-4">
                     <p className="text-base font-medium">Email Us</p>
                     <p className="text-red-100">support@flashbites.in</p>

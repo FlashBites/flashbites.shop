@@ -18,6 +18,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 const BRAND = '#E23744';
+const LOCATION_BANNER_DISMISSED_KEY = 'fb_location_banner_dismissed';
+const LOCATION_PERMISSION_STATE_KEY = 'fb_location_permission_state';
+const SELECTED_ADDRESS_KEY = 'fb_selected_address';
 
 /* ───── Category definitions with SVG icon paths ───── */
 const CATEGORIES = [
@@ -217,7 +220,10 @@ const Home = () => {
   const [geocoding, setGeocoding] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsDenied, setGpsDenied] = useState(false);
-  const [showGpsBanner, setShowGpsBanner] = useState(true);
+  const [showGpsBanner, setShowGpsBanner] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem(LOCATION_BANNER_DISMISSED_KEY) !== 'true';
+  });
   const pickerRef = useRef(null);
 
   /* ── Filtered restaurants ── */
@@ -256,6 +262,36 @@ const Home = () => {
     }
   }, [isAuthenticated]);
 
+  // Restore selected address and permission/banner state across page navigation
+  useEffect(() => {
+    try {
+      const savedAddress = localStorage.getItem(SELECTED_ADDRESS_KEY);
+      if (savedAddress) {
+        const parsed = JSON.parse(savedAddress);
+        if (parsed && typeof parsed === 'object') {
+          setSelectedAddress(parsed);
+        }
+      }
+
+      const permissionState = localStorage.getItem(LOCATION_PERMISSION_STATE_KEY);
+      if (permissionState === 'granted' || permissionState === 'denied') {
+        setShowGpsBanner(false);
+      }
+      if (permissionState === 'denied') {
+        setGpsDenied(true);
+      }
+    } catch {
+      // ignore invalid persisted state
+    }
+  }, []);
+
+  // Persist selected address so returning to Home doesn't ask location again
+  useEffect(() => {
+    if (selectedAddress) {
+      localStorage.setItem(SELECTED_ADDRESS_KEY, JSON.stringify(selectedAddress));
+    }
+  }, [selectedAddress]);
+
   // Close picker on outside click
   useEffect(() => {
     const handler = (e) => {
@@ -274,11 +310,13 @@ const Home = () => {
     if (!navigator.geolocation) { setGpsDenied(true); return; }
     setGpsLoading(true);
     setShowGpsBanner(false);
+    localStorage.setItem(LOCATION_BANNER_DISMISSED_KEY, 'true');
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         const city = await reverseGeocode(latitude, longitude);
         setGpsLoading(false);
+        localStorage.setItem(LOCATION_PERMISSION_STATE_KEY, 'granted');
         if (city) {
           setSelectedAddress({ label: city, city, latitude, longitude, fromGps: true });
           toast.success(`Location detected: ${city}`);
@@ -291,6 +329,7 @@ const Home = () => {
       (err) => {
         setGpsLoading(false);
         setGpsDenied(true);
+        localStorage.setItem(LOCATION_PERMISSION_STATE_KEY, 'denied');
         if (err.code === 1) toast('Location permission denied. Use the address picker instead.', { icon: '📍' });
       },
       { timeout: 20000, maximumAge: 120000 }
@@ -396,6 +435,7 @@ const Home = () => {
     setSelectedAddress(null);
     setNearbyRests([]);
     setNoServiceArea(false);
+    localStorage.removeItem(SELECTED_ADDRESS_KEY);
   };
 
   const handleSearch = (e) => {
@@ -609,8 +649,16 @@ const Home = () => {
             <div
               role="button"
               tabIndex={0}
-              onClick={() => setShowGpsBanner(false)}
-              onKeyDown={(e) => e.key === 'Enter' && setShowGpsBanner(false)}
+                onClick={() => {
+                  setShowGpsBanner(false);
+                  localStorage.setItem(LOCATION_BANNER_DISMISSED_KEY, 'true');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setShowGpsBanner(false);
+                    localStorage.setItem(LOCATION_BANNER_DISMISSED_KEY, 'true');
+                  }
+                }}
               className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.12)' }}
             >
@@ -826,7 +874,7 @@ const Home = () => {
             </button>
           </div>
         ) : allFiltered.length ? (
-          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
             {allFiltered.slice(0, 12).map((r) => (
               <RestaurantCard key={r._id} restaurant={r} />
             ))}

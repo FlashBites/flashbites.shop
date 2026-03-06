@@ -242,19 +242,19 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="max-w-7xl mx-auto container-px">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-6 sm:mb-8 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Panel</h1>
+            <p className="mt-2 text-sm sm:text-base text-gray-600">
               Manage restaurants, users, and platform settings • Auto-refreshes every 30s
             </p>
           </div>
           <button
             onClick={fetchData}
-            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+            className="w-full sm:w-auto px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
           >
             Refresh Now
           </button>
@@ -317,10 +317,10 @@ const AdminPanel = () => {
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow mb-6">
           <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
+            <nav className="flex -mb-px overflow-x-auto whitespace-nowrap scrollbar-hide">
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`px-6 py-3 text-sm font-medium ${
+                className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium ${
                   activeTab === 'overview'
                     ? 'border-b-2 border-primary-500 text-primary-600'
                     : 'text-gray-500 hover:text-gray-700'
@@ -330,7 +330,7 @@ const AdminPanel = () => {
               </button>
               <button
                 onClick={() => setActiveTab('restaurants')}
-                className={`px-6 py-3 text-sm font-medium ${
+                className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium ${
                   activeTab === 'restaurants'
                     ? 'border-b-2 border-primary-500 text-primary-600'
                     : 'text-gray-500 hover:text-gray-700'
@@ -340,7 +340,7 @@ const AdminPanel = () => {
               </button>
               <button
                 onClick={() => setActiveTab('users')}
-                className={`px-6 py-3 text-sm font-medium ${
+                className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium ${
                   activeTab === 'users'
                     ? 'border-b-2 border-primary-500 text-primary-600'
                     : 'text-gray-500 hover:text-gray-700'
@@ -350,7 +350,7 @@ const AdminPanel = () => {
               </button>
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`px-6 py-3 text-sm font-medium ${
+                className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium ${
                   activeTab === 'orders'
                     ? 'border-b-2 border-primary-500 text-primary-600'
                     : 'text-gray-500 hover:text-gray-700'
@@ -360,7 +360,7 @@ const AdminPanel = () => {
               </button>
               <button
                 onClick={() => setActiveTab('partners')}
-                className={`px-6 py-3 text-sm font-medium ${
+                className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium ${
                   activeTab === 'partners'
                     ? 'border-b-2 border-primary-500 text-primary-600'
                     : 'text-gray-500 hover:text-gray-700'
@@ -373,7 +373,7 @@ const AdminPanel = () => {
                   setActiveTab('analytics');
                   fetchAnalytics();
                 }}
-                className={`px-6 py-3 text-sm font-medium ${
+                className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium ${
                   activeTab === 'analytics'
                     ? 'border-b-2 border-primary-500 text-primary-600'
                     : 'text-gray-500 hover:text-gray-700'
@@ -384,7 +384,7 @@ const AdminPanel = () => {
             </nav>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {activeTab === 'overview' && (
               <div>
                 <h2 className="text-xl font-bold mb-4">Platform Overview</h2>
@@ -411,7 +411,7 @@ const AdminPanel = () => {
 
             {activeTab === 'restaurants' && (
               <div>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-4">
                   <h2 className="text-xl font-bold">Restaurant Management</h2>
                   <div className="text-sm text-gray-600">
                     Total: {restaurants.length} | 
@@ -554,7 +554,7 @@ const AdminPanel = () => {
 
             {activeTab === 'orders' && (
               <div>
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6">
                   <h2 className="text-xl font-bold">Order Management</h2>
                   <button
                     onClick={fetchData}
@@ -575,7 +575,7 @@ const AdminPanel = () => {
                   <div className="space-y-4">
                     {orders.map((order) => (
                       <div key={order._id} className="border rounded-lg p-6 hover:shadow-lg transition bg-white">
-                        <div className="flex justify-between items-start mb-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start mb-4">
                           <div>
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="font-bold text-lg">
@@ -595,7 +595,7 @@ const AdminPanel = () => {
                               {formatDateTime(order.createdAt)}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-left sm:text-right">
                             <p className="text-2xl font-bold text-primary-600">
                               {formatCurrency(order.total || order.totalAmount || 0)}
                             </p>
@@ -634,7 +634,7 @@ const AdminPanel = () => {
 
             {activeTab === 'partners' && (
               <div>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-4">
                   <h2 className="text-xl font-bold">Delivery Partner Applications</h2>
                   <div className="text-sm text-gray-600">
                     Total: {partners.length} | 
@@ -651,7 +651,7 @@ const AdminPanel = () => {
                   <div className="space-y-4">
                     {partners.map((partner) => (
                       <div key={partner._id} className="border rounded-lg p-6 bg-white hover:shadow-lg transition">
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col lg:flex-row gap-4 lg:justify-between lg:items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-3">
                               {partner.documents?.photo?.url && (
@@ -724,9 +724,9 @@ const AdminPanel = () => {
                             </div>
                           </div>
 
-                          <div className="ml-4">
+                          <div className="ml-0 lg:ml-4 w-full lg:w-auto">
                             {partner.status === 'pending' && (
-                              <div className="flex flex-col gap-2">
+                              <div className="flex flex-col sm:flex-row lg:flex-col gap-2">
                                 <button
                                   onClick={() => handleApprovePartner(partner._id)}
                                   className="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors whitespace-nowrap"
@@ -759,7 +759,7 @@ const AdminPanel = () => {
             {activeTab === 'analytics' && (
               <div>
                 {/* Period Selector */}
-                <div className="mb-6 flex justify-between items-center">
+                <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                   <h2 className="text-xl font-bold">Business Analytics</h2>
                   <select
                     value={analyticsPeriod}
@@ -767,7 +767,7 @@ const AdminPanel = () => {
                       setAnalyticsPeriod(e.target.value);
                       fetchAnalytics(e.target.value);
                     }}
-                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full sm:w-auto px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="7">Last 7 Days</option>
                     <option value="30">Last 30 Days</option>

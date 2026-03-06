@@ -46,8 +46,8 @@ const RestaurantCard = ({ restaurant: r }) => {
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
-      {/* ── Image ── */}
-      <div className="relative" style={{ height: '168px' }}>
+      {/* ── Image — aspect-ratio preserves shape at any width ── */}
+      <div className="relative" style={{ aspectRatio: '16/9' }}>
         <img
           src={r.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80'}
           alt={r.name}
@@ -117,10 +117,10 @@ const RestaurantCard = ({ restaurant: r }) => {
       </div>
 
       {/* ── Info ── */}
-      <div className="p-3.5" style={{ opacity: unavailable ? 0.7 : 1 }}>
-        <div className="flex items-start justify-between gap-2 mb-0.5">
-          <h3 className="text-[15px] font-bold text-gray-900 leading-tight flex-1 line-clamp-1">{r.name}</h3>
-        </div>
+        <div className="p-2.5 xs:p-3.5" style={{ opacity: unavailable ? 0.7 : 1 }}>
+          <div className="flex items-start justify-between gap-2 mb-0.5">
+            <h3 className="text-[13px] xs:text-[15px] font-bold text-gray-900 leading-tight flex-1 line-clamp-1">{r.name}</h3>
+          </div>
 
         <p className="text-[12px] text-gray-400 mb-2 line-clamp-1 font-medium">
           {Array.isArray(r.cuisines) ? r.cuisines.join(', ') : r.cuisine || 'Multi-cuisine'}

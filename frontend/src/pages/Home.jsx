@@ -668,9 +668,9 @@ const Home = () => {
               className="promo-banner snap-start flex-shrink-0 touch-feedback relative"
               style={{
                 background: p.bg,
-                width: 'clamp(280px, 80vw, 420px)',
-                minWidth: '280px',
-                minHeight: '160px',
+                width: 'clamp(260px, 75vw, 420px)',
+                minWidth: '260px',
+                minHeight: '145px',
                 borderRadius: '20px',
               }}
             >
@@ -688,7 +688,7 @@ const Home = () => {
               <img
                 src={p.img}
                 alt=""
-                className="h-28 w-28 object-cover rounded-2xl flex-shrink-0"
+                className="h-24 w-24 xs:h-28 xs:w-28 object-cover rounded-2xl flex-shrink-0"
                 loading="lazy"
               />
             </Link>
@@ -748,7 +748,7 @@ const Home = () => {
                 key={r._id}
                 to={`/restaurant/${r._id}`}
                 className="snap-start flex-shrink-0 group"
-              style={{ width: 'clamp(220px, 55vw, 260px)', minWidth: '220px' }}
+              style={{ width: 'clamp(190px, 48vw, 260px)', minWidth: '190px' }}
               >
                 <div className="card relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
                   <div className="relative" style={{ height: '160px' }}>
@@ -826,7 +826,7 @@ const Home = () => {
             </button>
           </div>
         ) : allFiltered.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
             {allFiltered.slice(0, 12).map((r) => (
               <RestaurantCard key={r._id} restaurant={r} />
             ))}

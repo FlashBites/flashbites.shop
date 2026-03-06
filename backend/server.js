@@ -80,14 +80,13 @@ const allowedOrigins = [
   'http://localhost:3001',
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://flashbites.vercel.app',
+  'https://localhost',
   'https://flashbites.in',
   'https://www.flashbites.in',
   // Capacitor iOS/Android origins
   'capacitor://localhost',
   'ionic://localhost',
   'http://localhost',
-  'https://flash-bite-go.base44.app',
   'https://api.razorpay.com',
   process.env.FRONTEND_URL
 ].filter(Boolean);

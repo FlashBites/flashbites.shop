@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
+import { Helmet } from 'react-helmet-async';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { getCurrentUser } from './redux/slices/authSlice';
@@ -119,6 +120,8 @@ function App() {
 
   return (
     <ErrorBoundary>
+      {/* Global default title – overridden per-page by <SEO> components */}
+      <Helmet defaultTitle="FlashBites" titleTemplate="%s | FlashBites" />
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         <div className="flex flex-col min-h-screen">

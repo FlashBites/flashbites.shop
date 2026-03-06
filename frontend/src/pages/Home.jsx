@@ -206,7 +206,7 @@ const geocodeAddress = async (query) => {
 const Home = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { restaurants, loading } = useSelector((s) => s.restaurant);
+  const { restaurants, loading, error: restaurantError } = useSelector((s) => s.restaurant);
   const { isAuthenticated } = useSelector((s) => s.auth);
 
   /* ── Delivery address state ── */
@@ -228,13 +228,23 @@ const Home = () => {
   const [activeCat, setActiveCat] = useState('all');
   const [searchQ, setSearchQ] = useState('');
 
-  // Wake up the backend on mount to avoid cold-start delays on Render free tier
+  // Wake up the backend, then fetch restaurants
+  // On mobile (Capacitor) wait for health ping before fetching to avoid cold-start race
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL?.replace('/api', '')}/api/health`).catch(() => {});
-  }, []);
+    const apiBase = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+    const isCapacitor = !!(window.Capacitor && window.Capacitor.isNativePlatform());
 
-  // Fetch restaurants on mount
-  useEffect(() => { dispatch(fetchRestaurants({})); }, [dispatch]);
+    const boot = async () => {
+      try {
+        await fetch(`${apiBase}/api/health`);
+      } catch (_) { /* backend might be sleeping, that's fine */ }
+      // Give it a moment to fully wake if it was sleeping
+      if (isCapacitor) await new Promise(r => setTimeout(r, 1500));
+      dispatch(fetchRestaurants({}));
+    };
+
+    boot();
+  }, [dispatch]);
 
   // Load saved addresses if authenticated
   useEffect(() => {
@@ -783,7 +793,38 @@ const Home = () => {
         </div>
 
         {loading ? (
-          <Loader />
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <svg className="animate-spin w-10 h-10" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke={BRAND} strokeWidth="4" />
+              <path className="opacity-75" fill={BRAND} d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+            <p className="text-[14px] font-semibold text-gray-500">Loading restaurants…</p>
+            <p className="text-[12px] text-gray-400">This may take a moment on first load</p>
+          </div>
+        ) : restaurantError ? (
+          /* ── Error / Retry state ── */
+          <div
+            className="text-center py-10 px-6 rounded-2xl"
+            style={{ background: 'white', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}
+          >
+            <div
+              className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              style={{ background: '#FEF2F3' }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke={BRAND} strokeWidth="1.5" className="w-8 h-8">
+                <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h3 className="text-[17px] font-bold text-gray-900 mb-1">Couldn't load restaurants</h3>
+            <p className="text-[13px] text-gray-400 mb-5">The server may be waking up. Please try again.</p>
+            <button
+              onClick={() => dispatch(fetchRestaurants({}))}
+              className="px-6 py-2.5 rounded-xl text-white font-semibold text-[14px]"
+              style={{ background: BRAND }}
+            >
+              Retry
+            </button>
+          </div>
         ) : allFiltered.length ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 sm:gap-6">
             {allFiltered.slice(0, 12).map((r) => (

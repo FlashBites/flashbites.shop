@@ -1,6 +1,7 @@
 // Firebase configuration for FlashBites
 import { initializeApp } from "firebase/app";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { getMessaging, getToken, onMessage, isSupported } from "firebase/messaging";
 
 // All values injected from .env via Vite (must start with VITE_)
 const firebaseConfig = {
@@ -14,6 +15,68 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+// ─── FCM Messaging ────────────────────────────────────────────────────────────
+// FCM VAPID key from Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+const FCM_VAPID_KEY = import.meta.env.VITE_FCM_VAPID_KEY || '';
+
+let messagingInstance = null;
+
+const getMessagingInstance = async () => {
+  if (messagingInstance) return messagingInstance;
+  try {
+    const supported = await isSupported();
+    if (!supported) return null;
+    messagingInstance = getMessaging(app);
+    return messagingInstance;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Request FCM permission and get the device token.
+ * Token is used by the backend to send targeted push notifications.
+ */
+export const getFCMToken = async () => {
+  try {
+    const messaging = await getMessagingInstance();
+    if (!messaging) return null;
+
+    // Register the service worker
+    if ('serviceWorker' in navigator) {
+      await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    }
+
+    const token = await getToken(messaging, {
+      vapidKey: FCM_VAPID_KEY,
+    });
+
+    if (token) {
+      console.log('✅ FCM token obtained:', token.slice(0, 20) + '...');
+      return token;
+    } else {
+      console.warn('No FCM token available — notification permission may be blocked');
+      return null;
+    }
+  } catch (error) {
+    console.error('Failed to get FCM token:', error);
+    return null;
+  }
+};
+
+/**
+ * Listen for foreground FCM messages (when app is open/focused).
+ */
+export const onForegroundMessage = async (callback) => {
+  try {
+    const messaging = await getMessagingInstance();
+    if (!messaging) return () => {};
+    return onMessage(messaging, callback);
+  } catch {
+    return () => {};
+  }
+};
 
 /**
  * Setup invisible reCAPTCHA verifier.

@@ -11,7 +11,7 @@ exports.updateProfile = async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, phone, avatar },
+      { $set: { name, phone, avatar } },
       { new: true, runValidators: true }
     ).select('-password -refreshToken');
 
@@ -86,7 +86,7 @@ exports.updateAddress = async (req, res) => {
 
     const updatedAddress = await Address.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { $set: req.body },
       { new: true, runValidators: true }
     );
 

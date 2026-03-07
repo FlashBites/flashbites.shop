@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { Helmet } from 'react-helmet-async';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { Preferences } from '@capacitor/preferences';
 import { getCurrentUser } from './redux/slices/authSlice';
 import { useNotifications } from './hooks/useNotifications';
 
@@ -66,7 +67,6 @@ const GoogleAuthSuccess = () => {
 
       if (token && refreshToken) {
         // Use Preferences instead of localStorage
-        const { Preferences } = await import('@capacitor/preferences');
         await Preferences.set({ key: 'accessToken', value: token });
         await Preferences.set({ key: 'refreshToken', value: refreshToken });
         window.location.href = '/';

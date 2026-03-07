@@ -5,6 +5,7 @@ import notificationSound from '../utils/notificationSound';
 import { toast } from 'react-hot-toast';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { getFCMToken, onForegroundMessage } from '../firebase';
+import axiosInstance from '../api/axios';
 
 const isNativePlatform = () => !!(window.Capacitor && window.Capacitor.isNativePlatform());
 
@@ -113,10 +114,8 @@ export const useNotifications = () => {
       // Set up FCM for web push (foreground + background)
       if (!isNativePlatform()) {
         // Get & register FCM token
-        import('../api/axios').then(({ default: axiosInstance }) => {
-          authAxiosRef.current = axiosInstance;
-          registerFCMToken(axiosInstance);
-        });
+        authAxiosRef.current = axiosInstance;
+        registerFCMToken(axiosInstance);
 
         // Listen for foreground FCM messages (when app is open)
         onForegroundMessage((payload) => {
